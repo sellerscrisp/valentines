@@ -3,15 +3,14 @@ import { notFound } from "next/navigation";
 import QuizSlide from "@/components/Quiz/QuizSlide";
 import { quizQuestions } from "@/data/quizQuestions";
 
-// Allow params to be either a plain object or a Promise that resolves to that object.
+// Now declare that params is a Promise resolving to an object with questionId.
 type PageProps = {
-  params: { questionId: string } | Promise<{ questionId: string }>;
+  params: Promise<{ questionId: string }>;
 };
 
 export default async function QuestionPage({ params }: PageProps) {
-  // If params is a Promise, await it; otherwise use it directly.
-  const resolvedParams = params instanceof Promise ? await params : params;
-  const { questionId } = resolvedParams;
+  // Await params to unwrap the value.
+  const { questionId } = await params;
   const questionData = quizQuestions[questionId];
 
   if (!questionData) {
