@@ -79,28 +79,4 @@ export const quizQuestions: Record<string, QuizQuestion> = {
         noNext: null,
         showConfetti: true,
     },
-    yesNoDate: {
-        id: "yesNoDate",
-        imageUrl: "/images/neutral.gif",
-        header: "Maybe Next Time",
-        question: "No worries. I’m glad you enjoyed the question!",
-        yesNext: null,
-        noNext: null,
-    },
-    friendResponse: {
-        id: "friendResponse",
-        imageUrl: "/images/friend.gif",
-        header: "Friends Forever!",
-        question: "Awesome! I value our friendship so much.",
-        yesNext: null,
-        noNext: null,
-    },
-    noFriendResponse: {
-        id: "noFriendResponse",
-        imageUrl: "/images/alone.gif",
-        header: "Alone But Cherished",
-        question: "I'll always care about you, no matter what.",
-        yesNext: null,
-        noNext: null,
-    },
 };

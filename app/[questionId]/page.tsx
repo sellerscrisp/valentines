@@ -3,14 +3,13 @@ import { notFound } from "next/navigation";
 import QuizSlide from "@/components/Quiz/QuizSlide";
 import { quizQuestions } from "@/data/quizQuestions";
 
-type PageProps = {
-  params: {
-    questionId: string;
-  };
-};
-
-export default async function QuestionPage({ params }: PageProps) {
-  const { questionId } = params;
+export default async function QuestionPage({
+  params,
+}: {
+  params: { questionId: string };
+}) {
+  // Wrap params in Promise.resolve so that "await" returns the same object.
+  const { questionId } = await Promise.resolve(params);
   const questionData = quizQuestions[questionId];
 
   if (!questionData) {
