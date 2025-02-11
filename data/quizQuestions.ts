@@ -24,7 +24,7 @@ export const quizQuestions: Record<string, QuizQuestion> = {
     },
     noResponse1: {
         id: "noResponse1",
-        imageUrl: "https://media1.tenor.com/m/TUT0f-LqDwAAAAAd/strongly-disagree.gif",
+        imageUrl: "https://media1.tenor.com/m/Exn9VkWI1jsAAAAd/he-strongly-disagree-disagree-cat.gif",
         header: "very strongly.",
         question: "excuse me...",
         yesNext: "yesResponseFinally",
