@@ -14,6 +14,7 @@ export const quizQuestions: Record<string, QuizQuestion> = {
     start: {
         id: "start",
         imageUrl: "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMmQ3c2JheXdrZG53MXIxcGw0dmRpbWgzamh5Y2VhMjk4d2RvazZ2dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/W4Q0G0EX6nBkrLZx66/giphy.gif",
+        header: "",
         question: "will you be my valentine? 😍",
         yesNext: "yesResponseImmediately",
         noNext: "noResponse1",
@@ -24,7 +25,7 @@ export const quizQuestions: Record<string, QuizQuestion> = {
     noResponse1: {
         id: "noResponse1",
         imageUrl: "https://media1.tenor.com/m/TUT0f-LqDwAAAAAd/strongly-disagree.gif",
-        // header: "oh...okay...",
+        header: "very strongly.",
         question: "excuse me...",
         yesNext: "yesResponseFinally",
         noNext: "noResponse2",
@@ -34,6 +35,7 @@ export const quizQuestions: Record<string, QuizQuestion> = {
     noResponse2: {
         id: "noResponse2",
         imageUrl: "https://media1.tenor.com/m/nBR_oOC_J0YAAAAd/cat-angry.gif",
+        header: "",
         question: "why do you keep saying no???😡",
         yesNext: "yesResponseFinally",
         noNext: "noResponseFinally",
@@ -43,6 +45,7 @@ export const quizQuestions: Record<string, QuizQuestion> = {
     noResponseFinally: {
         id: "noResponseFinally",
         imageUrl: "https://media1.tenor.com/m/kEjTMxgbFZYAAAAd/smirk-cat.gif",
+        header: "",
         question: "you can't say no now you little freaky bunkey 🐇🐒",
         yesNext: "yesResponseFinally",
         noNext: ".",
