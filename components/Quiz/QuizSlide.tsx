@@ -1,8 +1,7 @@
-// components/Quiz/QuizSlide.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";

@@ -1,7 +1,6 @@
-// app/[questionId]/page.tsx
 import { quizQuestions } from "@/data/quizQuestions";
 import QuizSlide from "@/components/Quiz/QuizSlide";
-import AudioToggle from "@/components/Quiz/AudioToggle"; // Optional
+// import AudioToggle from "@/components/Quiz/AudioToggle"; // Optional
 import { notFound } from "next/navigation";
 
 interface Params {

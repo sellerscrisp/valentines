@@ -1,12 +1,10 @@
-// app/layout.tsx
 import "./globals.css";
-import { Inter, Pacifico } from "next/font/google";
+import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
-const pacifico = Pacifico({ weight: "400", subsets: ["latin"] });
 
 export const metadata = {
-  title: "Be My Valentine Quiz",
+  title: "Be mine",
   description: "A special quiz to ask her to be my valentine",
 };
 
