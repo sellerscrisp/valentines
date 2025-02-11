@@ -37,7 +37,7 @@ export default function QuizSlide({
     const { width, height } = useWindowSize();
     const [confettiVisible, setConfettiVisible] = useState(false);
 
-    // For anti-cursor behavior on the no button
+    // For anti-cursor behavior on the "no" button
     const [noButtonStyle, setNoButtonStyle] = useState<React.CSSProperties>({});
 
     // On mount, check for the query parameter to trigger confetti on the next slide.
@@ -49,7 +49,7 @@ export default function QuizSlide({
 
     const handleYes = () => {
         if (confettiEnabled && yesNext) {
-            // Navigate immediately to the next question with the confetti flag
+            // Navigate immediately to the next question with the confetti flag.
             router.push(`/${yesNext}?confetti=true`);
         } else if (yesNext) {
             router.push(`/${yesNext}`);
@@ -64,19 +64,34 @@ export default function QuizSlide({
 
     const handleBack = () => {
         if (id === "start") {
-            // Do nothing if this is the start slide
+            // Do nothing if this is the start slide.
             return;
         }
         router.back();
     };
 
-    // For the anti-cursor behavior: when the mouse nears or interacts with the "no" button,
-    // reposition it to a random location within the viewport.
+    // Randomize the "no" button's position ensuring at least 50px difference from its current position.
     const randomizeNoButtonPosition = () => {
         const buttonWidth = 100; // Adjust as needed for your button size
         const buttonHeight = 50; // Adjust as needed for your button size
-        const randomX = Math.floor(Math.random() * (window.innerWidth - buttonWidth));
-        const randomY = Math.floor(Math.random() * (window.innerHeight - buttonHeight));
+
+        // Ensure currentX/currentY are numbers.
+        const currentX = typeof noButtonStyle.left === "number" ? noButtonStyle.left : 0;
+        const currentY = typeof noButtonStyle.top === "number" ? noButtonStyle.top : 0;
+
+        let randomX = Math.floor(Math.random() * (window.innerWidth - buttonWidth));
+        let randomY = Math.floor(Math.random() * (window.innerHeight - buttonHeight));
+
+        // Ensure the new X position is at least 50px away from the current X position.
+        while (Math.abs(randomX - currentX) < 50) {
+            randomX = Math.floor(Math.random() * (window.innerWidth - buttonWidth));
+        }
+
+        // Ensure the new Y position is at least 50px away from the current Y position.
+        while (Math.abs(randomY - currentY) < 50) {
+            randomY = Math.floor(Math.random() * (window.innerHeight - buttonHeight));
+        }
+
         setNoButtonStyle({
             position: "fixed",
             left: randomX,
@@ -86,7 +101,6 @@ export default function QuizSlide({
     };
 
     return (
-        // Added "pt-10" to push the content closer to the top of the page.
         <motion.div
             className="relative flex flex-col p-4 max-w-md mx-auto"
             initial={{ opacity: 0, y: 20 }}
