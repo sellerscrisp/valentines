@@ -1,0 +1,9 @@
+/* styles/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Additional global styles if needed */
+body {
+    background-color: lightpink;
+}
