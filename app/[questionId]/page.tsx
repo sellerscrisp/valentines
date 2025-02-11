@@ -1,15 +1,15 @@
-import { quizQuestions } from "@/data/quizQuestions";
-import QuizSlide from "@/components/Quiz/QuizSlide";
-// import AudioToggle from "@/components/Quiz/AudioToggle"; // Optional
 import { notFound } from "next/navigation";
+import QuizSlide from "@/components/Quiz/QuizSlide";
+import { quizQuestions } from "@/data/quizQuestions";
 
-interface Params {
+// Define the props type expected by Next.js
+interface PageProps {
   params: {
     questionId: string;
   };
 }
 
-export default function QuestionPage({ params }: Params) {
+export default async function QuestionPage({ params }: PageProps) {
   const { questionId } = params;
   const questionData = quizQuestions[questionId];
 
@@ -18,10 +18,9 @@ export default function QuestionPage({ params }: Params) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
+    <div className="min-h-screen flex flex-col justify-start items-center p-4">
       <QuizSlide {...questionData} />
-      {/* Optionally include AudioToggle or any other component */}
-      {/* <AudioToggle /> */}
+      {/* Optionally include other components like AudioToggle */}
     </div>
   );
 }
