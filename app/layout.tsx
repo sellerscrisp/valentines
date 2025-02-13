@@ -1,6 +1,6 @@
-// app/layout.tsx
 import "./globals.css";
 import { Inter } from "next/font/google";
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -43,7 +43,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} overflow-x-hidden bg-background`}>{children}</body>
+      <body className={`${inter.className} overflow-x-hidden bg-background`}>
+        {children}
+      </body>
+      <Toaster />
     </html>
   );
 }

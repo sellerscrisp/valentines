@@ -1,36 +1,49 @@
+// app/scrapbook/components/Gallery.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import EntryCard from "./EntryCard";
+import { supabase } from "@/lib/supabaseClient";
+import { SkeletonCard } from "./SkeletonCard";
 
-// Sample data for demonstration; later, fetch from Supabase
-const sampleEntries = [
-  {
-    id: "1",
-    title: "Our First Date",
-    content: "We had a magical time at the park.",
-    entry_date: "2022-05-10",
-    image_url: "https://via.placeholder.com/300",
-    tags: ["romantic", "first-date"],
-  },
-  {
-    id: "2",
-    title: "Beach Day",
-    content: "Spent a sunny day at the beach laughing and swimming.",
-    entry_date: "2022-06-15",
-    image_url: "https://via.placeholder.com/300",
-    tags: ["fun", "sunny"],
-  },
-  // ... more entries
-];
+interface Entry {
+  id: string;
+  title?: string;
+  content: string;
+  entry_date: string;
+  image_url?: string;
+  location?: string;
+}
 
 export default function Gallery() {
-  const [entries, setEntries] = useState(sampleEntries);
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Placeholder for infinite scroll (to be implemented)
   useEffect(() => {
-    // Logic for dynamic loading goes here.
+    const fetchEntries = async () => {
+      const { data, error } = await supabase
+        .from("scrapbook_entries")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching entries:", error.message);
+      } else if (data) {
+        setEntries(data as Entry[]);
+      }
+      setLoading(false);
+    };
+    fetchEntries();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, idx) => (
+          <SkeletonCard key={idx} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
