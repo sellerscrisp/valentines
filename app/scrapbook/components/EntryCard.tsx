@@ -1,16 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { useMemo } from "react";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { MapPin } from "lucide-react";
+import { formatInTimeZone } from "date-fns-tz";
 
 interface Entry {
     id: string;
     title?: string;
-    content: string;
+    content: string;  // This will serve as the "story"
     entry_date: string;
     image_url?: string;
     location?: string;
@@ -21,72 +20,61 @@ interface EntryCardProps {
     entry: Entry;
 }
 
+function shortenString(text: any, maxLength: number): string {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength - 3) + '...';
+  }
+
 export default function EntryCard({ entry }: EntryCardProps) {
-    // Generate random values for likes, comments, and time.
-    const randomLikes = useMemo(() => Math.floor(Math.random() * 4901) + 100, []);
-    const randomComments = useMemo(() => Math.floor(Math.random() * 101), []);
-    const randomTime = useMemo(() => {
-        const hours = Math.floor(Math.random() * 24);
-        return hours === 0 ? "Just now" : `${hours} HOURS AGO`;
-    }, []);
+    // Format the date in a desired time zone (adjust IANA time zone as needed)
+    const formattedDate = formatInTimeZone(
+        new Date(entry.entry_date),
+        "America/New_York",
+        "PPP"
+    );
 
     return (
-        <Card className="max-w-md mx-auto">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="flex items-center space-x-2">
-                    <Avatar className="w-8 h-8">
-                        <AvatarImage src="/placeholder.svg?height=32&width=32" alt={entry.title || "User"} />
-                        <AvatarFallback>{entry.title ? entry.title.charAt(0) : "?"}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="text-sm font-medium leading-none">{entry.poster || "Anonymous"}</p>
-                        <p className="text-xs text-muted-foreground">{entry.location || "Unknown location"}</p>
-                    </div>
-                </div>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">More options</span>
-                </Button>
-            </CardHeader>
-            <CardContent className="p-0">
-                {entry.image_url && entry.image_url.trim() !== "" && (
+        <Card className="max-w-[300px] overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+            <div className="relative aspect-[3/4]">
+                {entry.image_url && entry.image_url.trim() !== "" ? (
                     <Image
                         src={entry.image_url}
-                        alt="Scrapbook entry image"
-                        width={480}
-                        height={480}
-                        className="w-full h-auto"
+                        alt={entry.title || "Scrapbook entry image"}
+                        fill
+                        className="object-cover"
                     />
-                )}
-            </CardContent>
-            <CardFooter className="flex flex-col items-start p-4 space-y-3">
-                <div className="flex justify-between items-center w-full">
-                    <div className="flex space-x-4">
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                            <Heart className="h-6 w-6" />
-                            <span className="sr-only">Like</span>
-                        </Button>
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                            <MessageCircle className="h-6 w-6" />
-                            <span className="sr-only">Comment</span>
-                        </Button>
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                            <Send className="h-6 w-6" />
-                            <span className="sr-only">Share</span>
-                        </Button>
+                ) : (
+                    <div className="bg-gray-200 w-full h-full flex items-center justify-center">
+                        <span className="text-gray-500">No Image</span>
                     </div>
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                        <Bookmark className="h-6 w-6" />
-                        <span className="sr-only">Save</span>
-                    </Button>
+                )}
+                <div className="absolute top-3 left-3 bg-white rounded-full px-3 py-1 text-xs font-semibold text-gray-700 flex items-center space-x-1">
+                    <MapPin className="w-3 h-3" />
+                    <span>{shortenString(entry.location, 25) || ""}</span>
                 </div>
-                <p className="text-sm font-medium">{randomLikes.toLocaleString()} likes</p>
-                <div className="text-sm">
-                    <span className="font-medium">{entry.poster || "Anonymous"}</span> {entry.content}
+            </div>
+            <CardContent className="p-4">
+                <CardTitle>
+                    <p className="text-sm text-gray-600 text-medium">
+                        {entry.title}
+                    </p>
+                </CardTitle>
+                <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                    {entry.content}
+                </p>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                        <Avatar className="w-8 h-8">
+                            <AvatarImage src="/placeholder.svg?height=32&width=32" alt={entry.poster} />
+                            <AvatarFallback>
+                                {entry.poster ? entry.poster.charAt(0).toUpperCase() : "?"}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs font-medium text-gray-700">{entry.poster}</span>
+                    </div>
+                    <span className="text-xs text-gray-500">{formattedDate}</span>
                 </div>
-                <div className="text-sm text-muted-foreground">View all {randomComments} comments</div>
-                <div className="text-xs text-muted-foreground">{randomTime}</div>
-            </CardFooter>
+            </CardContent>
         </Card>
     );
 }

@@ -13,6 +13,7 @@ interface Entry {
   entry_date: string;
   image_url?: string;
   location?: string;
+  poster: string;
 }
 
 export default function Gallery() {

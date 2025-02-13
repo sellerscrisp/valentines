@@ -18,8 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { CalendarIcon, ChevronsUpDown } from "lucide-react";
+// import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
 import { useToast } from "@/hooks/use-toast"

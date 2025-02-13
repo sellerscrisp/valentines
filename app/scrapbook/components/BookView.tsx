@@ -66,6 +66,7 @@ export default function BookView({ onClose }: BookViewProps) {
           className="p-4 h-full flex flex-col items-center justify-center"
         >
           {currentEntry.image_url && (
+            // @next/next/no-img-element
             <img
               src={currentEntry.image_url}
               alt={currentEntry.title || "Scrapbook entry image"}
