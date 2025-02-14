@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "preinstall": "npm config set legacy-peer-deps true",
+    "preinstall": "npm config set legacy-peer-deps true && npm config set include-dev true",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
