@@ -1,4 +1,4 @@
-import type { Config } from "tailwindcss";
+import type { Config } from "tailwindcss"
 
 export default {
   darkMode: ["class"],
@@ -11,10 +11,10 @@ export default {
     extend: {
       colors: {
         // Base colors
-        background: "#ffe6f0", // Light pink background
+        background: "#ffdee3", // A soft pink from the palette
         foreground: "#2e2e2e", // Dark text for contrast
 
-        // Card & popover (light backgrounds with dark text)
+        // Card & popover backgrounds (light) with dark text
         card: {
           DEFAULT: "#ffffff",
           foreground: "#2e2e2e",
@@ -24,50 +24,41 @@ export default {
           foreground: "#2e2e2e",
         },
 
-        // Primary & secondary colors for main actions
+        // Valentine reds/pinks
+        // #C00000 (deep red), #FF3334 (bright red), #FF6F77 (light red/pink),
+        // #FFBCB1 (salmon pink), #FFDEE3 (soft pink), #FF88C2 (light pinkish tone)
         primary: {
-          DEFAULT: "#ff3366", // Romantic red
+          DEFAULT: "#c00000", // Darkest red
           foreground: "#ffffff",
         },
         secondary: {
-          DEFAULT: "#b366ff", // Romantic purple
+          DEFAULT: "#ff3334", // Bright red
           foreground: "#ffffff",
-        },
-
-        // Muted & accent colors (a soft gold and reusing the romantic red)
-        muted: {
-          DEFAULT: "#ffcc66", // Romantic gold-ish
-          foreground: "#2e2e2e",
         },
         accent: {
-          DEFAULT: "#ff3366",
+          DEFAULT: "#ff6f77", // Light red/pink
           foreground: "#ffffff",
         },
 
-        // Destructive actions (a deeper red)
+        // A milder pink that can be used for subdued backgrounds
+        muted: {
+          DEFAULT: "#ffbcb1",
+          foreground: "#2e2e2e",
+        },
+
+        // If you need a destructive action color, we can reuse #ff3334 or pick #c00000
         destructive: {
-          DEFAULT: "#e6004c",
+          DEFAULT: "#ff3334",
           foreground: "#ffffff",
         },
 
-        // Other necessary colors
-        border: "#d1a3b8", // A soft mauve border color
-        input: "#ffe6f0",  // Same as background
-        ring: "#ff3366",   // Focus ring color matching primary
-        chart: {
-          '1': "#ff3366",
-          '2': "#b366ff",
-          '3': "#ffcc66",
-          '4': "#ffe6f0",
-          '5': "#d1a3b8",
-        },
+        // Additional pink tone for optional usage
+        pinkLight: "#ff88c2", // Guessed final color from the scheme
 
-        // Additional romantic colors
-        redAccent: "#ff3366",
-        romanticPink: "#ffe6f0",
-        romanticRed: "#ff3366",
-        romanticPurple: "#b366ff",
-        romanticGold: "#ffcc66",
+        // Border color that contrasts well with a pink background
+        border: "#ffcbd0", // A subtle pinkish border
+        input: "#ffffff",  // Same as background for inputs
+        ring: "#c00000",   // Focus ring color matching the darkest red
       },
       borderRadius: {
         lg: "0.5rem",
@@ -77,4 +68,4 @@ export default {
     },
   },
   plugins: [require("tailwindcss-animate")],
-} satisfies Config;
+} satisfies Config
