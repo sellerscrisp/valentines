@@ -29,7 +29,7 @@ const fetchEntries = async () => {
 };
 
 export default function Gallery() {
-  const { data, error, mutate } = useSWR("scrapbookEntries", fetchEntries);
+  const { data, error } = useSWR("scrapbookEntries", fetchEntries);
   const [sortOption, setSortOption] = useState<SortOption>("dateAdded");
 
   if (error) return <p>Error loading entries: {error.message}</p>;
@@ -44,10 +44,10 @@ export default function Gallery() {
   }
 
   // Cast data to Entry array.
-  let entries = data as Entry[];
+  const entries = data as Entry[];
 
   // Sort the entries based on the selected sort option.
-  let sortedEntries = [...entries];
+  const sortedEntries = [...entries];
   if (sortOption === "dateAdded") {
     sortedEntries.sort(
       (a, b) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime()
