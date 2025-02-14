@@ -1,33 +1,50 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import Gallery from "./components/Gallery";
-import AddEntrySheet from "./components/AddEntrySheet";
-import BookView from "./components/BookView";
-import { Button } from "@/components/ui/button";
+import { useState } from "react"
+import Gallery from "./components/Gallery"
+import AddEntrySheet from "./components/AddEntrySheet"
+import BookView from "./components/BookView"
+import { Button } from "@/components/ui/button"
+import { Home, PlusCircle, Book } from "lucide-react"
+import Link from "next/link"
 
 export default function ScrapbookPage() {
-  const [showAddEntry, setShowAddEntry] = useState(false);
-  const [showBookView, setShowBookView] = useState(false);
+  const [showAddEntry, setShowAddEntry] = useState(false)
+  const [showBookView, setShowBookView] = useState(false)
 
   return (
-    <div className="relative min-h-screen bg-romanticPink p-4">
+    <div className="relative min-h-screen bg-background p-4">
       {/* Main Gallery */}
+      
       <Gallery />
-
-      {/* Sticky Floating Buttons */}
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
-        <Button onClick={() => setShowBookView(true)} variant="secondary">
-          View Scrapbook
-        </Button>
-        <Button onClick={() => setShowAddEntry(true)} variant="default">
-          Add Photo/Entry
-        </Button>
-      </div>
+      <p className="text-background">I</p>
+      <p className="text-background">Love</p>
+      <p className="text-background">You</p>
+      {/* Full-width Floating Nav */}
+      <nav className="fixed bottom-4 left-4 right-4 bottom-1">
+        <div className="bg-card/25 backdrop-blur-lg rounded-xl p-4 shadow-lg border">
+          <div className="flex items-center justify-between space-x-4">
+            <Link href="/" className="flex-1">
+              <Button variant="outline" className="rounded-xl">
+                <Home className="" />
+              </Button>
+            </Link>
+            <Button onClick={() => setShowBookView(true)} variant="default" className="flex-1 rounded-xl">
+              <Book className="h-6 w-6" />
+              Scrapbook
+            </Button>
+            <Button onClick={() => setShowAddEntry(true)} variant="default" className="flex-1 rounded-xl">
+              <PlusCircle className="h-6 w-6" />
+              Entry
+            </Button>
+          </div>
+        </div>
+      </nav>
 
       {/* Overlays */}
       {showAddEntry && <AddEntrySheet onClose={() => setShowAddEntry(false)} />}
       {showBookView && <BookView onClose={() => setShowBookView(false)} />}
     </div>
-  );
+  )
 }
+
