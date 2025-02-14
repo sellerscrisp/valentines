@@ -9,7 +9,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
   SheetFooter,
   SheetClose,
 } from "@/components/ui/sheet";
@@ -19,7 +18,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, ChevronsUpDown } from "lucide-react";
-// import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
 import { useToast } from "@/hooks/use-toast"
@@ -108,24 +106,21 @@ export default function AddEntrySheet({ onClose }: AddEntrySheetProps) {
 
   return (
     <Sheet open={true} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-full">
+      <SheetContent side="bottom" className="h-full bg-accent/50 backdrop-blur-lg">
         <SheetHeader>
-          <SheetTitle className="p-8 text-xl">Add Scrapbook Entry</SheetTitle>
-          <SheetDescription>
-            Share a memory with us. Fill out the details below.
-          </SheetDescription>
+          <SheetTitle className="p-8 text-xl text-white">Add Scrapbook Entry</SheetTitle>
         </SheetHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-8 px-8">
           <div>
-            <label className="block text-sm font-medium">Title (Optional)</label>
+            <label className="block text-sm font-medium text-white">Title</label>
             <Input {...form.register("title")} placeholder="A memorable moment" />
           </div>
           <div>
-            <label className="block text-sm font-medium">Memory</label>
+            <label className="block text-sm font-medium text-white">Memory</label>
             <Textarea {...form.register("content")} placeholder="Tell your story..." />
           </div>
           <div>
-            <label className="block text-sm font-medium">Date</label>
+            <label className="block text-sm font-medium text-white">Date</label>
             <Controller
               control={form.control}
               name="entry_date"
@@ -137,7 +132,7 @@ export default function AddEntrySheet({ onClose }: AddEntrySheetProps) {
                       className="w-[240px] justify-start text-left font-normal"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {value ? format(new Date(value), "PPP") : <span>Pick a date</span>}
+                      {value ? format(new Date(value), "PPP") : <span>Choose a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -153,11 +148,11 @@ export default function AddEntrySheet({ onClose }: AddEntrySheetProps) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Location (Optional)</label>
+            <label className="block text-sm font-medium text-white">Location</label>
             <Input {...form.register("location")} placeholder="City, Country" />
           </div>
           <div>
-            <label className="block text-sm font-medium">Poster</label>
+            <label className="block text-sm font-medium text-white">Poster</label>
             <Controller
               control={form.control}
               name="poster"
@@ -184,7 +179,7 @@ export default function AddEntrySheet({ onClose }: AddEntrySheetProps) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Picture (Optional)</label>
+            <label className="block text-sm font-medium text-white">Picture</label>
             <Input type="file" {...form.register("image")} />
           </div>
           <SheetFooter className="grid grid-cols-2 gap-4">
