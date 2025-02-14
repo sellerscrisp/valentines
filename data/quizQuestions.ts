@@ -68,7 +68,7 @@ export const quizQuestions: Record<string, QuizQuestion> = {
         imageUrl: "https://media1.tenor.com/m/tSBqNM9Y8mwAAAAC/love-dog.gif",
         header: "i love you so much 💗💗",
         question: "wanna go on a date?",
-        yesNext: "yesDate",
+        yesNext: "quiz/yesDate",
         yesLabel: "absolutely;)",
         noNext: null,
         showConfetti: true,
