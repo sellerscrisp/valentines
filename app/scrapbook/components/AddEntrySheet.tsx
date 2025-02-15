@@ -120,34 +120,6 @@ export default function AddEntrySheet({ onClose }: AddEntrySheetProps) {
             <Textarea {...form.register("content")} placeholder="Tell your story..." />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white">Date</label>
-            <Controller
-              control={form.control}
-              name="entry_date"
-              render={({ field: { onChange, value } }) => (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-[240px] justify-start text-left font-normal z-100"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {value ? format(new Date(value), "PPP") : <span>Choose a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={value ? new Date(value) : undefined}
-                      onSelect={(d) => onChange(d?.toISOString() || "")}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              )}
-            />
-          </div>
-          <div>
             <label className="block text-sm font-medium text-white">Location</label>
             <Input {...form.register("location")} placeholder="City, Country" />
           </div>
@@ -173,6 +145,34 @@ export default function AddEntrySheet({ onClose }: AddEntrySheetProps) {
                         Sellers
                       </Button>
                     </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-white">Date</label>
+            <Controller
+              control={form.control}
+              name="entry_date"
+              render={({ field: { onChange, value } }) => (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-[240px] justify-start text-left font-normal z-100"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {value ? format(new Date(value), "PPP") : <span>Choose a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={value ? new Date(value) : undefined}
+                      onSelect={(d) => onChange(d?.toISOString() || "")}
+                      initialFocus
+                    />
                   </PopoverContent>
                 </Popover>
               )}
