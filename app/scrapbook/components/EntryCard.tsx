@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { MapPin, Download } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
-import Link from "next/link";
 
 interface Entry {
   id: string;
@@ -28,15 +29,48 @@ function shortenString(text: any, maxLength: number): string {
 }
 
 export default function EntryCard({ entry }: EntryCardProps) {
-  // Format the date in UTC so it doesn't shift relative to the stored date.
+  // Format the date using UTC so the stored date is shown as entered.
   const formattedDate = formatInTimeZone(
     new Date(entry.entry_date),
     "UTC",
     "PPP"
   );
 
+  // Detect if the device is mobile (i.e. does not support hover)
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const mq = window.matchMedia("(hover: none)");
+      setIsMobile(mq.matches);
+      const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+      if (mq.addEventListener) {
+        mq.addEventListener("change", handler);
+      } else {
+        mq.addListener(handler);
+      }
+      return () => {
+        if (mq.removeEventListener) {
+          mq.removeEventListener("change", handler);
+        } else {
+          mq.removeListener(handler);
+        }
+      };
+    }
+  }, []);
+
+  // State to control save button visibility on mobile.
+  const [showSave, setShowSave] = useState(false);
+  const handleCardClick = () => {
+    if (isMobile) {
+      setShowSave((prev) => !prev);
+    }
+  };
+
   return (
-    <Card className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+    <Card
+      onClick={handleCardClick}
+      className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
+    >
       {/* Image Section */}
       <div className="relative aspect-[3/4]">
         {entry.image_url && entry.image_url.trim() !== "" ? (
@@ -56,15 +90,18 @@ export default function EntryCard({ entry }: EntryCardProps) {
           <MapPin className="w-3 h-3" />
           <span>{shortenString(entry.location, 25) || ""}</span>
         </div>
-
-        {/* Hover Save Button */}
+        {/* Save Button: 
+            - On desktop, shown via group-hover.
+            - On mobile, shown based on state (toggled on tap). */}
         {entry.image_url && entry.image_url.trim() !== "" && (
           <Link
             href={entry.image_url}
             download
             target="_blank"
             rel="noreferrer"
-            className="absolute bottom-3 right-3 hidden group-hover:flex items-center space-x-1 bg-primary px-3 py-1 rounded-full shadow text-sm font-medium text-white"
+            onClick={(e) => e.stopPropagation()} // Prevent toggling when clicking the button
+            className={`absolute bottom-3 right-3 items-center space-x-1 bg-primary px-3 py-1 rounded-full shadow text-sm font-medium text-white 
+              ${isMobile ? (showSave ? "flex" : "hidden") : "hidden group-hover:flex"}`}
           >
             <Download className="h-4 w-4" />
             <span>Save</span>
@@ -75,9 +112,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
       {/* Card Content */}
       <CardContent className="p-4">
         <CardTitle>
-          <p className="text-sm text-gray-600 text-medium">
-            {entry.title}
-          </p>
+          <p className="text-sm text-gray-600">{entry.title}</p>
         </CardTitle>
         <p className="text-sm text-gray-600 line-clamp-2 mb-2">
           {entry.content}
@@ -85,7 +120,10 @@ export default function EntryCard({ entry }: EntryCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Avatar className="w-8 h-8">
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt={entry.poster} />
+              <AvatarImage
+                src="/placeholder.svg?height=32&width=32"
+                alt={entry.poster}
+              />
               <AvatarFallback>
                 {entry.poster ? entry.poster.charAt(0).toUpperCase() : "?"}
               </AvatarFallback>

@@ -11,42 +11,43 @@ export default function LandingPage() {
       <h1 className="text-4xl font-bold mb-8">Welcome to Our Valentine Experience</h1>
       <div className="grid gap-8 md:grid-cols-2">
         {/* Quiz Card */}
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="max-w-sm"
-        >
-          <Card className="p-6 shadow-lg">
-            <h2 className="text-2xl font-bold mb-4">Take the Quiz</h2>
-            <p className="mb-6">
-              re-take the valentine quiz :)
-            </p>
-            <Link href="/quiz/start" passHref>
+        <Link href="/quiz/start" passHref>
+
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="max-w-sm"
+          >
+            <Card className="p-6 shadow-lg">
+              <h2 className="text-2xl font-bold mb-4">Take the Quiz</h2>
+              <p className="mb-6">
+                re-take the valentine quiz :)
+              </p>
               <Button variant="secondary" className="w-full">
                 Start Quiz
               </Button>
-            </Link>
-          </Card>
-        </motion.div>
+            </Card>
+          </motion.div>
+        </Link>
 
         {/* Scrapbook Card */}
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="max-w-sm"
-        >
-          <Card className="p-6 shadow-lg">
-            <h2 className="text-2xl font-bold mb-4">Digital Scrapbook</h2>
-            <p className="mb-6">
-              view and add memories 😁
-            </p>
-            <Link href="/scrapbook" passHref>
+        <Link href="/scrapbook" passHref>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="max-w-sm"
+          >
+            <Card className="p-6 shadow-lg">
+              <h2 className="text-2xl font-bold mb-4">Digital Scrapbook</h2>
+              <p className="mb-6">
+                view and add memories 😁
+              </p>
               <Button variant="secondary" className="w-full">
                 View Scrapbook
               </Button>
-            </Link>
-          </Card>
-        </motion.div>
+            </Card>
+          </motion.div>
+        </Link>
       </div>
     </div>
   );

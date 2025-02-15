@@ -29,11 +29,11 @@ export default function ScrapbookPage() {
                 <Home className="" />
               </Button>
             </Link>
-            <Button onClick={() => setShowBookView(true)} variant="default" className="flex-1 rounded-xl">
+            <Button onClick={() => setShowBookView(true)} variant="ghost" className="flex-1 rounded-xl bg-accent/30 border-1 border-border border-opacity-5">
               <Book className="h-6 w-6" />
               Scrapbook
             </Button>
-            <Button onClick={() => setShowAddEntry(true)} variant="default" className="flex-1 rounded-xl">
+            <Button onClick={() => setShowAddEntry(true)} variant="ghost" className="flex-1 rounded-xl bg-accent/30 border-1 border-border border-opacity-5">
               <PlusCircle className="h-6 w-6" />
               Entry
             </Button>
