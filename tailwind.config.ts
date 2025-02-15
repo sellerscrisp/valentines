@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss"
 
 export default {
-  darkMode: ["class"],
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -23,10 +22,6 @@ export default {
           DEFAULT: "#ffffff",
           foreground: "#2e2e2e",
         },
-
-        // Valentine reds/pinks
-        // #C00000 (deep red), #FF3334 (bright red), #FF6F77 (light red/pink),
-        // #FFBCB1 (salmon pink), #FFDEE3 (soft pink), #FF88C2 (light pinkish tone)
         primary: {
           DEFAULT: "#c00000", // Darkest red
           foreground: "#ffffff",
@@ -39,14 +34,10 @@ export default {
           DEFAULT: "#ff6f77", // Light red/pink
           foreground: "#ffffff",
         },
-
-        // A milder pink that can be used for subdued backgrounds
         muted: {
           DEFAULT: "#ffbcb1",
           foreground: "#2e2e2e",
         },
-
-        // If you need a destructive action color, we can reuse #ff3334 or pick #c00000
         destructive: {
           DEFAULT: "#ff3334",
           foreground: "#ffffff",
