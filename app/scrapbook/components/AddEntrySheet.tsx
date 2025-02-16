@@ -160,13 +160,20 @@ export default function AddEntrySheet({ onClose }: AddEntrySheetProps) {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-[240px] justify-start text-left font-normal z-100"
+                      className="w-[240px] justify-start text-left font-normal"
+                      onTouchStart={(e) => {
+                        // This logs on mobile tap—remove or adjust as needed.
+                        console.log("PopoverTrigger touched");
+                      }}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {value ? format(new Date(value), "PPP") : <span>Choose a date</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent
+                    className="w-auto p-0 pointer-events-auto" // Ensure pointer events are enabled
+                    align="start"
+                  >
                     <Calendar
                       mode="single"
                       selected={value ? new Date(value) : undefined}
@@ -177,6 +184,7 @@ export default function AddEntrySheet({ onClose }: AddEntrySheetProps) {
                 </Popover>
               )}
             />
+
           </div>
           <div>
             <label className="block text-sm font-medium text-white">Picture</label>
