@@ -161,10 +161,10 @@ export default function AddEntrySheet({ onClose }: AddEntrySheetProps) {
                     <Button
                       variant="outline"
                       className="w-[240px] justify-start text-left font-normal"
-                      onTouchStart={(e) => {
-                        // This logs on mobile tap—remove or adjust as needed.
+                      onTouchStart={() => {
                         console.log("PopoverTrigger touched");
                       }}
+                      
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {value ? format(new Date(value), "PPP") : <span>Choose a date</span>}
