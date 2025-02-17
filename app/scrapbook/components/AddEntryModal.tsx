@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, ChevronsUpDown, Plus } from "lucide-react";
+import { CalendarIcon, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
 import { useToast } from "@/hooks/use-toast";
