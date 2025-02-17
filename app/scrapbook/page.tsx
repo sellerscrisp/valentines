@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import Gallery from "./components/Gallery";
-import AddEntryModal from "./components/AddEntryModal";
 import BookView from "./components/BookView";
 import { Button } from "@/components/ui/button";
-import { Home, Book } from "lucide-react";
+import { Home, Book, PlusCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function ScrapbookPage() {
@@ -15,9 +14,6 @@ export default function ScrapbookPage() {
     <div className="relative min-h-screen bg-background p-4">
       {/* Main Gallery */}
       <Gallery />
-      <p className="text-background">I</p>
-      <p className="text-background">Love</p>
-      <p className="text-background">You</p>
 
       {/* Full-width Floating Nav */}
       <nav className="fixed bottom-4 left-4 right-4">
@@ -36,8 +32,12 @@ export default function ScrapbookPage() {
               <Book className="h-6 w-6" />
               Scrapbook
             </Button>
-            {/* The AddEntryModal includes its own DialogTrigger internally */}
-            <AddEntryModal />
+            <Link href="/scrapbook/add" className="flex-1">
+              <Button variant="ghost" className="rounded-xl bg-accent/30 border border-border border-opacity-5">
+                <PlusCircle className="h-6 w-6" />
+                Entry
+              </Button>
+            </Link>
           </div>
         </div>
       </nav>
