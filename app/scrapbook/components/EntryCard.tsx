@@ -5,22 +5,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { MapPin, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MapPin, Download, Edit } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
-
-interface Entry {
-  id: string;
-  title?: string;
-  content: string; // This will serve as the "story"
-  entry_date: string;
-  image_url?: string;
-  location?: string;
-  poster: string;
-}
-
-interface EntryCardProps {
-  entry: Entry;
-}
+import { useSession } from "next-auth/react";
+import { EditEntryDialog } from "./EditEntryDialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EntryCardProps } from "@/types/entry";
 
 function shortenString(text: any, maxLength: number): string {
   if (typeof text !== "string") return "";
@@ -29,6 +20,30 @@ function shortenString(text: any, maxLength: number): string {
 }
 
 export default function EntryCard({ entry }: EntryCardProps) {
+  const { data: session } = useSession();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+
+  // Mobile detection hook
+  useEffect(() => {
+    const checkIsMobile = () => {
+      const mq = window.matchMedia("(hover: none)");
+      setIsMobile(mq.matches);
+    };
+
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
+
+  const handleCardClick = () => {
+    if (isMobile) {
+      setShowActions(prev => !prev);
+    }
+  };
+
   // Format the date using UTC so the stored date is shown as entered.
   const formattedDate = formatInTimeZone(
     new Date(entry.entry_date),
@@ -36,35 +51,40 @@ export default function EntryCard({ entry }: EntryCardProps) {
     "PPP"
   );
 
-  // Detect if the device is mobile (i.e. does not support hover)
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const mq = window.matchMedia("(hover: none)");
-      setIsMobile(mq.matches);
-      const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-      if (mq.addEventListener) {
-        mq.addEventListener("change", handler);
-      } else {
-        mq.addListener(handler);
-      }
-      return () => {
-        if (mq.removeEventListener) {
-          mq.removeEventListener("change", handler);
-        } else {
-          mq.removeListener(handler);
-        }
-      };
-    }
-  }, []);
-
-  // State to control save button visibility on mobile.
-  const [showSave, setShowSave] = useState(false);
-  const handleCardClick = () => {
-    if (isMobile) {
-      setShowSave((prev) => !prev);
-    }
-  };
+  // Action buttons component
+  const ActionButtons = () => (
+    <div className={`absolute bottom-3 right-3 flex gap-2 items-center
+      ${isMobile ? (showActions ? 'flex' : 'hidden') : 'hidden group-hover:flex'}`}
+    >
+      {entry.image_url && entry.image_url.trim() !== "" && (
+        <Link
+          href={entry.image_url}
+          download
+          target="_blank"
+          rel="noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center space-x-1 bg-primary px-3 py-1 rounded-full shadow text-sm font-medium text-white"
+        >
+          <Download className="h-4 w-4" />
+          <span>Save</span>
+        </Link>
+      )}
+      {session?.user?.email && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center space-x-1 bg-primary px-3 py-1 rounded-full shadow text-sm font-medium text-white border-none"
+          onClick={(e) => {
+            e.stopPropagation();
+            setEditDialogOpen(true);
+          }}
+        >
+          <Edit className="h-4 w-4" />
+          <span>Edit</span>
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <Card
@@ -74,12 +94,22 @@ export default function EntryCard({ entry }: EntryCardProps) {
       {/* Image Section */}
       <div className="relative aspect-[3/4]">
         {entry.image_url && entry.image_url.trim() !== "" ? (
-          <Image
-            src={entry.image_url}
-            alt={entry.title || "Scrapbook entry image"}
-            fill
-            className="object-cover"
-          />
+          <>
+            {imageLoading && (
+              <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+            )}
+            <Image
+              src={entry.image_url}
+              alt={entry.title || "Scrapbook entry image"}
+              fill
+              className={`object-cover transition-opacity duration-300 ${
+                imageLoading ? 'opacity-0' : 'opacity-100'
+              }`}
+              onLoadingComplete={() => setImageLoading(false)}
+              priority={false}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </>
         ) : (
           <div className="bg-gray-200 w-full h-full flex items-center justify-center">
             <span className="text-gray-500">No Image</span>
@@ -90,23 +120,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
           <MapPin className="w-3 h-3" />
           <span>{shortenString(entry.location, 25) || ""}</span>
         </div>
-        {/* Save Button: 
-            - On desktop, shown via group-hover.
-            - On mobile, shown based on state (toggled on tap). */}
-        {entry.image_url && entry.image_url.trim() !== "" && (
-          <Link
-            href={entry.image_url}
-            download
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => e.stopPropagation()} // Prevent toggling when clicking the button
-            className={`absolute bottom-3 right-3 items-center space-x-1 bg-primary px-3 py-1 rounded-full shadow text-sm font-medium text-white 
-              ${isMobile ? (showSave ? "flex" : "hidden") : "hidden group-hover:flex"}`}
-          >
-            <Download className="h-4 w-4" />
-            <span>Save</span>
-          </Link>
-        )}
+        <ActionButtons />
       </div>
 
       {/* Card Content */}
@@ -135,6 +149,11 @@ export default function EntryCard({ entry }: EntryCardProps) {
           <span className="text-xs text-gray-500">{formattedDate}</span>
         </div>
       </CardContent>
+      <EditEntryDialog 
+        entry={entry}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+      />
     </Card>
   );
 }

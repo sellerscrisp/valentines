@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
+import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -45,7 +46,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} overflow-x-hidden bg-background`}>
         <main>
-          {children}
+          <SessionProvider>
+            {children}
+          </SessionProvider>
           <Toaster />
         </main>
       </body>

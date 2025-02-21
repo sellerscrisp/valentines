@@ -1,8 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -10,27 +10,22 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
-
-const entrySchema = z.object({
-  title: z.string().optional(),
-  content: z.string().min(5, "Memory is too short!"),
-  entry_date: z.string(),
-  location: z.string().optional(),
-  poster: z.enum(["abby", "sellers"]),
-  image: z.any().optional(),
-});
-
-type EntryFormData = z.infer<typeof entrySchema>;
+import { entrySchema, EntryFormData } from "@/types/form";
+import { useSession } from "next-auth/react";
 
 export default function AddEntryPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { data: session } = useSession();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const defaultPoster = session?.user?.email?.includes("sellers") ? "sellers" : "abby";
+  
   const form = useForm<EntryFormData>({
     resolver: zodResolver(entrySchema),
     defaultValues: {
@@ -38,66 +33,87 @@ export default function AddEntryPage() {
       content: "",
       entry_date: "",
       location: "",
-      poster: "abby",
+      poster: defaultPoster,
       image: undefined,
     },
   });
 
   const onSubmit = async (data: EntryFormData) => {
-    let imageUrl = null;
-    if (data.image && data.image.length > 0) {
-      const file = data.image[0];
-      const filePath = `entries/${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from("scrapbook")
-        .upload(filePath, file);
-      if (uploadError) {
-        console.error("Error uploading file:", uploadError.message);
-        toast({
-          variant: "destructive",
-          title: "Upload Error",
-          description: uploadError.message,
-        });
-        return;
-      } else {
+    setIsSubmitting(true);
+    try {
+      let imageUrl = null;
+      if (data.image && data.image.length > 0) {
+        const file = data.image[0];
+        const filePath = `entries/${Date.now()}-${file.name}`;
+        
+        // Upload image with timeout handling
+        const uploadPromise = supabase.storage
+          .from("scrapbook")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: false
+          });
+          
+        const { error: uploadError } = await Promise.race([
+          uploadPromise,
+          new Promise<{ error: Error }>((_, reject) => 
+            setTimeout(() => reject({ error: new Error("Upload timed out") }), 30000)
+          )
+        ]);
+
+        if (uploadError) {
+          throw new Error(`Upload Error: ${uploadError.message}`);
+        }
+
+        // Get public URL
         const { data: urlData } = supabase.storage
           .from("scrapbook")
           .getPublicUrl(filePath);
         imageUrl = urlData.publicUrl;
       }
-    }
 
-    const { error } = await supabase.from("scrapbook_entries").insert([
-      {
-        title: data.title,
-        content: data.content,
-        entry_date: data.entry_date,
-        image_url: imageUrl,
-        location: data.location,
-        poster: data.poster,
-        submitted_by: null,
-      },
-    ]);
+      // Insert entry with timeout handling
+      const insertPromise = supabase.from("scrapbook_entries").insert([
+        {
+          title: data.title,
+          content: data.content,
+          entry_date: data.entry_date,
+          image_url: imageUrl,
+          location: data.location,
+          poster: data.poster,
+          submitted_by: null,
+        },
+      ]);
 
-    if (error) {
-      console.error("Error inserting entry:", error.message);
+      const { error: insertError } = await Promise.race([
+        insertPromise,
+        new Promise<{ error: Error }>((_, reject) =>
+          setTimeout(() => reject({ error: new Error("Database insertion timed out") }), 10000)
+        )
+      ]);
+
+      if (insertError) {
+        throw new Error(`Database Error: ${insertError.message}`);
+      }
+
       toast({
-        variant: "destructive",
-        title: "Submission Error",
-        description: error.message,
-      });
-    } else {
-      toast({
-        title: "Scrapbook Entry Added",
+        title: "Success",
         description: "Your scrapbook entry was added successfully.",
       });
+      
       mutate("scrapbookEntries");
+      router.push("/scrapbook");
+      
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    router.push("/scrapbook");
-  };
-
-  const onCancel = () => {
-    router.push("/scrapbook");
   };
 
   return (
@@ -105,54 +121,41 @@ export default function AddEntryPage() {
       <h1 className="text-2xl font-bold mb-4">Add Scrapbook Entry</h1>
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-full max-w-md space-y-4">
         <div className="grid gap-1">
-          <label className="text-sm font-medium">Title</label>
+          <Label>Title</Label>
           <Input {...form.register("title")} placeholder="A memorable moment" />
         </div>
+        
         <div className="grid gap-1">
-          <label className="text-sm font-medium">Memory</label>
+          <Label>Memory</Label>
           <Textarea {...form.register("content")} placeholder="Tell your story..." />
+          {form.formState.errors.content && (
+            <p className="text-sm text-destructive">{form.formState.errors.content.message}</p>
+          )}
         </div>
+
         <div className="grid gap-1">
-          <label className="text-sm font-medium">Location</label>
+          <Label>Location</Label>
           <Input {...form.register("location")} placeholder="City, Country" />
         </div>
+
         <div className="grid gap-1">
-          <label className="text-sm font-medium">Poster</label>
-          <Controller
-            control={form.control}
-            name="poster"
-            render={({ field: { value, onChange } }) => (
-              <RadioGroup value={value} onValueChange={onChange} className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="abby" id="poster-abby" />
-                  <Label htmlFor="poster-abby">Abby</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="sellers" id="poster-sellers" />
-                  <Label htmlFor="poster-sellers">Sellers</Label>
-                </div>
-              </RadioGroup>
-            )}
-          />
-        </div>
-        <div className="grid gap-1">
-          <label className="text-sm font-medium">Date</label>
+          <Label>Date</Label>
           <Controller
             control={form.control}
             name="entry_date"
-            render={({ field: { onChange, value } }) => (
+            render={({ field }) => (
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-[240px] justify-start text-left">
+                  <Button variant="outline" className="w-full justify-start text-left">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {value ? format(new Date(value), "PPP") : "Choose a date"}
+                    {field.value ? format(new Date(field.value), "PPP") : "Choose a date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={value ? new Date(value) : undefined}
-                    onSelect={(d) => onChange(d?.toISOString() || "")}
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => field.onChange(date?.toISOString() || "")}
                     initialFocus
                   />
                 </PopoverContent>
@@ -160,15 +163,35 @@ export default function AddEntryPage() {
             )}
           />
         </div>
+
         <div className="grid gap-1">
-          <label className="text-sm font-medium">Picture</label>
-          <Input type="file" {...form.register("image")} />
+          <Label>Picture</Label>
+          <Input 
+            type="file" 
+            accept="image/*"
+            {...form.register("image")} 
+          />
         </div>
+
         <div className="flex justify-between space-x-4">
-          <Button variant="secondary" type="button" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => router.push("/scrapbook")}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
-          <Button type="submit">Add Entry</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              "Add Entry"
+            )}
+          </Button>
         </div>
       </form>
     </div>
