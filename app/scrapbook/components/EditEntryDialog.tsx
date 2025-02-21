@@ -27,6 +27,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
     });
 
     const onSubmit = async (data: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { error } = await supabase
             .from("scrapbook_entries")
             .update({

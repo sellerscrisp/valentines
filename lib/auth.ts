@@ -12,8 +12,8 @@ const userDisplayNames: Record<string, string> = {
 export const config = {
   providers: [
     GoogleProvider({
-      clientId: process.env.DEV_AUTH_GOOGLE_ID!,
-      clientSecret: process.env.DEV_AUTH_GOOGLE_SECRET!,
+      clientId: process.env.PROD_AUTH_GOOGLE_ID!,
+      clientSecret: process.env.PROD_AUTH_GOOGLE_SECRET!,
     }),
   ],
   secret: process.env.AUTH_SECRET,
