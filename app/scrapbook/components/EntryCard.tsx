@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
   const { data: session } = useSession();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  
+
   // Format the date using UTC so the stored date is shown as entered.
   const formattedDate = formatInTimeZone(
     new Date(entry.entry_date),
