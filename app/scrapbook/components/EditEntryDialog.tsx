@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
 import { EditEntryDialogProps } from "@/types/entry";
-import { CalendarIcon, Edit } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -163,7 +163,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
               Edit Memory
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              Make changes to your memory here. Click save when you're done.
+              Make changes to your memory here. Click save when you&apos;re done.
             </DialogDescription>
           </DialogHeader>
 

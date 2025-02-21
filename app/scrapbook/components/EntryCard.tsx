@@ -25,21 +25,8 @@ function shortenString(text: any, maxLength: number): string {
 export default function EntryCard({ entry }: EntryCardProps) {
   const { data: session } = useSession();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  // Mobile detection hook
-  useEffect(() => {
-    const checkIsMobile = () => {
-      const mq = window.matchMedia("(hover: none)");
-      setIsMobile(mq.matches);
-    };
-
-    checkIsMobile();
-    window.addEventListener("resize", checkIsMobile);
-    return () => window.removeEventListener("resize", checkIsMobile);
-  }, []);
-
+  
   // Format the date using UTC so the stored date is shown as entered.
   const formattedDate = formatInTimeZone(
     new Date(entry.entry_date),
