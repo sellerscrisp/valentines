@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -27,9 +25,7 @@ function shortenString(text: any, maxLength: number): string {
 export default function EntryCard({ entry }: EntryCardProps) {
   const { data: session } = useSession();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [showActions, setShowActions] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Mobile detection hook
@@ -43,12 +39,6 @@ export default function EntryCard({ entry }: EntryCardProps) {
     window.addEventListener("resize", checkIsMobile);
     return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
-
-  const handleCardClick = () => {
-    if (isMobile) {
-      setShowActions(prev => !prev);
-    }
-  };
 
   // Format the date using UTC so the stored date is shown as entered.
   const formattedDate = formatInTimeZone(
@@ -99,14 +89,12 @@ export default function EntryCard({ entry }: EntryCardProps) {
 
   return (
     <Card
-      onClick={handleCardClick}
       className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out h-full"
     >
       {/* Image Section - Make sure this div takes up the correct space */}
       <div className="relative w-full aspect-[3/4]">
         <EntryCardGallery 
           images={entry.images || []}
-          onImageLoad={() => setImageLoading(false)}
           onCurrentIndexChange={setCurrentImageIndex}
         />
         

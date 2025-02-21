@@ -4,9 +4,6 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import Gallery from "./components/Gallery";
 import BookView from "./components/BookView";
-import { Button } from "@/components/ui/button";
-import { Home, Book, PlusCircle } from "lucide-react";
-import Link from "next/link";
 import { AuthModal } from "@/components/auth-modal";
 import { ScrapbookNav } from "./components/ScrapbookNav";
 
