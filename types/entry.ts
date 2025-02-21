@@ -3,8 +3,8 @@ export interface Entry {
   title?: string;
   content: string;
   entry_date: string;
-  date_added?: string;
-  image_url?: string;
+  date_added: string;
+  images?: { url: string; order: number; }[];
   location?: string;
   poster: string;
   submitted_by?: string | null;

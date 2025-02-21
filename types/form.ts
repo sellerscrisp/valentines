@@ -9,4 +9,20 @@ export const entrySchema = z.object({
   image: z.any().optional(),
 });
 
-export type EntryFormData = z.infer<typeof entrySchema>; 
+export type EntryFormData = z.infer<typeof entrySchema>;
+
+export interface ImageData {
+  url: string;
+  order: number;
+}
+
+export interface Entry {
+  id: string;
+  title?: string;
+  content: string;
+  entry_date: string;
+  date_added: string;
+  images: ImageData[];
+  location?: string;
+  poster: string;
+} 
