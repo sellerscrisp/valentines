@@ -1,9 +1,14 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { Inter, Great_Vibes } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
+const greatVibes = Great_Vibes({ 
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export const metadata = {
   title: "Breaking: Putin Launches First Missile Strike",
@@ -30,7 +35,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "Breaking: Putin Launches First Missile Strike",
     description:
-      "Russia Times Exclusive: Putin’s first missile strike has rocked the world. Click to read the full, unbelievable story.",
+      "Russia Times Exclusive: Putin's first missile strike has rocked the world. Click to read the full, unbelievable story.",
     images: [
       "https://www.ft.com/__origami/service/image/v2/images/raw/ftcms%3Af44a3ec4-c1e8-449b-a3b6-9704756ff41d?source=next-article&fit=scale-down&quality=highest&width=1440&dpr=1",
     ],

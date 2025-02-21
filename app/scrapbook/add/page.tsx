@@ -10,22 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, LoaderPinwheel } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
 import { entrySchema, EntryFormData } from "@/types/form";
 import { useSession } from "next-auth/react";
+import { ImagePreview } from "./components/ImagePreview";
 
 export default function AddEntryPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const defaultPoster = session?.user?.email?.includes("sellers") ? "sellers" : "abby";
-  
+
   const form = useForm<EntryFormData>({
     resolver: zodResolver(entrySchema),
     defaultValues: {
@@ -45,7 +46,7 @@ export default function AddEntryPage() {
       if (data.image && data.image.length > 0) {
         const file = data.image[0];
         const filePath = `entries/${Date.now()}-${file.name}`;
-        
+
         // Upload image with timeout handling
         const uploadPromise = supabase.storage
           .from("scrapbook")
@@ -53,10 +54,10 @@ export default function AddEntryPage() {
             cacheControl: "3600",
             upsert: false
           });
-          
+
         const { error: uploadError } = await Promise.race([
           uploadPromise,
-          new Promise<{ error: Error }>((_, reject) => 
+          new Promise<{ error: Error }>((_, reject) =>
             setTimeout(() => reject({ error: new Error("Upload timed out") }), 30000)
           )
         ]);
@@ -100,10 +101,10 @@ export default function AddEntryPage() {
         title: "Success",
         description: "Your scrapbook entry was added successfully.",
       });
-      
+
       mutate("scrapbookEntries");
       router.push("/scrapbook");
-      
+
     } catch (error) {
       console.error("Error:", error);
       toast({
@@ -117,83 +118,118 @@ export default function AddEntryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 flex flex-col items-center">
-      <h1 className="text-2xl font-bold mb-4">Add Scrapbook Entry</h1>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full max-w-md space-y-4">
-        <div className="grid gap-1">
-          <Label>Title</Label>
-          <Input {...form.register("title")} placeholder="A memorable moment" />
-        </div>
-        
-        <div className="grid gap-1">
-          <Label>Memory</Label>
-          <Textarea {...form.register("content")} placeholder="Tell your story..." />
-          {form.formState.errors.content && (
-            <p className="text-sm text-destructive">{form.formState.errors.content.message}</p>
-          )}
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-red-300 to-red-200 animate-gradient-xy p-8">
+      <div className="max-w-2xl mx-auto space-y-8">
+        <h1 className="text-2xl font-bold mb-4">Add Scrapbook Entry</h1>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <div className="grid gap-1">
+            <Label>Title</Label>
+            <Input {...form.register("title")} placeholder="A memorable moment" />
+          </div>
 
-        <div className="grid gap-1">
-          <Label>Location</Label>
-          <Input {...form.register("location")} placeholder="City, Country" />
-        </div>
-
-        <div className="grid gap-1">
-          <Label>Date</Label>
-          <Controller
-            control={form.control}
-            name="entry_date"
-            render={({ field }) => (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {field.value ? format(new Date(field.value), "PPP") : "Choose a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(date?.toISOString() || "")}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+          <div className="grid gap-1">
+            <Label>Memory</Label>
+            <Textarea {...form.register("content")} placeholder="Tell your story..." />
+            {form.formState.errors.content && (
+              <p className="text-sm text-destructive">{form.formState.errors.content.message}</p>
             )}
-          />
-        </div>
+          </div>
 
-        <div className="grid gap-1">
-          <Label>Picture</Label>
-          <Input 
-            type="file" 
-            accept="image/*"
-            {...form.register("image")} 
-          />
-        </div>
+          <div className="grid gap-1">
+            <Label>Location</Label>
+            <Input {...form.register("location")} placeholder="City, Country" />
+          </div>
 
-        <div className="flex justify-between space-x-4">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => router.push("/scrapbook")}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Adding...
-              </>
-            ) : (
-              "Add Entry"
-            )}
-          </Button>
-        </div>
-      </form>
+          <div className="grid gap-1">
+            <Label>Date</Label>
+            <Controller
+              control={form.control}
+              name="entry_date"
+              render={({ field }) => (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? format(new Date(field.value), "PPP") : "Choose a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) => field.onChange(date?.toISOString() || "")}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label>Picture</Label>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-background">
+              <Input
+                type="file"
+                accept="image/*"
+                multiple
+                {...form.register("image")}
+                className="hidden"
+                id="image-upload"
+              />
+              <label
+                htmlFor="image-upload"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md cursor-pointer text-sm font-medium"
+              >
+                Choose Files
+              </label>
+              <span className="text-muted-foreground text-sm">
+                {form.watch("image")?.length 
+                  ? `${form.watch("image").length} file(s) selected` 
+                  : "No file chosen"}
+              </span>
+            </div>
+            <ImagePreview
+              files={form.watch("image")}
+              onRemove={(index) => {
+                const currentFiles = form.watch("image");
+                if (!currentFiles) return;
+                
+                const dataTransfer = new DataTransfer();
+                Array.from(currentFiles)
+                  .filter((_, i) => i !== index)
+                  .forEach(file => dataTransfer.items.add(file as File));
+                
+                form.setValue("image", dataTransfer.files);
+              }}
+            />
+          </div>
+
+          <div className="flex justify-between space-x-4">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => router.push("/scrapbook")}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <span className="text-center text-pink-700/60 text-sm mt-2">
+              posting as {defaultPoster}
+            </span>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <LoaderPinwheel className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Entry"
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

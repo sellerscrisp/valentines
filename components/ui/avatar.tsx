@@ -4,6 +4,13 @@ import * as React from "react"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
 import { cn } from "@/lib/utils"
+import { Great_Vibes } from "next/font/google"
+
+const greatVibes = Great_Vibes({ 
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
@@ -40,6 +47,8 @@ const AvatarFallback = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-full w-full items-center justify-center rounded-full bg-muted",
+      greatVibes.className,
+      "text-xl leading-none",
       className
     )}
     {...props}
