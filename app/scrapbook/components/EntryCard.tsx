@@ -10,7 +10,6 @@ import { MapPin, Download, Edit } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { useSession } from "next-auth/react";
 import { EditEntryDialog } from "./EditEntryDialog";
-import { Skeleton } from "@/components/ui/skeleton";
 import { EntryCardProps } from "@/types/entry";
 
 function shortenString(text: any, maxLength: number): string {

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
-import { Entry, EditEntryDialogProps } from "@/types/entry";
+import { EditEntryDialogProps } from "@/types/entry";
 import { Trash2 } from "lucide-react";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 
@@ -37,6 +37,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
             .eq("id", entry.id);
 
         if (error) {
+            console.error("Update error:", error);
             toast({
                 variant: "destructive",
                 title: "Error",
@@ -98,7 +99,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
                     <DialogHeader>
                         <DialogTitle>Edit Entry</DialogTitle>
                         <DialogDescription>
-                            Make changes to your scrapbook entry here. Click save when you're done.
+                            Make changes to your scrapbook entry here. Click save when you&apos;re done.
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
