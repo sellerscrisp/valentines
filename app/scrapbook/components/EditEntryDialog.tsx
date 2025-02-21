@@ -27,7 +27,6 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
     });
 
     const onSubmit = async (data: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { error } = await supabase
             .from("scrapbook_entries")
             .update({
@@ -57,23 +56,22 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
     const handleDelete = async () => {
         setIsDeleting(true);
         try {
-            // Delete image from storage if it exists
             if (entry.image_url) {
                 const imagePath = entry.image_url.split('/').pop();
                 if (imagePath) {
-                    await supabase.storage
+                    const { error: storageError } = await supabase.storage
                         .from("scrapbook")
                         .remove([`entries/${imagePath}`]);
+                    if (storageError) throw storageError;
                 }
             }
 
-            // Delete entry from database
-            const { error } = await supabase
+            const { error: dbError } = await supabase
                 .from("scrapbook_entries")
                 .delete()
                 .eq("id", entry.id);
 
-            if (error) throw error;
+            if (dbError) throw dbError;
 
             toast({
                 title: "Success",
@@ -85,7 +83,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Failed to delete entry",
+                description: error instanceof Error ? error.message : "Failed to delete entry",
             });
         } finally {
             setIsDeleting(false);
