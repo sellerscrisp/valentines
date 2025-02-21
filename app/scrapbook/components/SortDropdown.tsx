@@ -9,13 +9,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, ChevronUp, CalendarDays, CalendarClock, Users } from "lucide-react";
-
-export type SortOption = "dateAdded" | "entryDate" | "poster";
-
-interface SortDropdownProps {
-  sortOption: SortOption;
-  onSortChange: (option: SortOption) => void;
-}
+import type { SortOption, SortDropdownProps } from "@/types/sort";
 
 export default function SortDropdown({ sortOption, onSortChange }: SortDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);

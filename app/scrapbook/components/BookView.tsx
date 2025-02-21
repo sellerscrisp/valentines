@@ -12,7 +12,7 @@ interface Entry {
   title?: string;
   content: string;
   entry_date: string;
-  image_url?: string;
+  images?: { url: string; order: number }[];
   location?: string;
 }
 
@@ -65,10 +65,9 @@ export default function BookView({ onClose }: BookViewProps) {
           transition={{ duration: 0.5 }}
           className="p-4 h-full flex flex-col items-center justify-center"
         >
-          {currentEntry.image_url && (
-            // @next/next/no-img-element
+          {currentEntry.images?.[0]?.url && (
             <img
-              src={currentEntry.image_url}
+              src={currentEntry.images[0].url}
               alt={currentEntry.title || "Scrapbook entry image"}
               className="w-full h-1/2 object-cover rounded mb-4"
             />

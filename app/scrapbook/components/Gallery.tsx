@@ -5,7 +5,8 @@ import useSWR from "swr";
 import EntryCard from "./EntryCard";
 import { supabase } from "@/lib/supabaseClient";
 import { SkeletonCard } from "./SkeletonCard";
-import SortDropdown, { SortOption } from "./SortDropdown";
+import SortDropdown from "./SortDropdown";
+import { SortOption } from "@/types/sort";
 
 interface Entry {
   id: string;
@@ -13,7 +14,7 @@ interface Entry {
   content: string;
   entry_date: string;
   date_added: string;
-  image_url?: string;
+  images?: { url: string; order: number }[];
   location?: string;
   poster: string;
 }

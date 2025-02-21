@@ -19,6 +19,11 @@ import { entrySchema, EntryFormData } from "@/types/form";
 import { useSession } from "next-auth/react";
 import { ImagePreview } from "./components/ImagePreview";
 
+type ImageData = {
+  url: string;
+  order: number;
+};
+
 export default function AddEntryPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -42,75 +47,75 @@ export default function AddEntryPage() {
   const onSubmit = async (data: EntryFormData) => {
     setIsSubmitting(true);
     try {
-      let imageUrl = null;
+      let images: ImageData[] = [];
+      
       if (data.image && data.image.length > 0) {
-        const file = data.image[0];
-        const filePath = `entries/${Date.now()}-${file.name}`;
+        // Upload all images in parallel
+        const uploadPromises = Array.from(data.image as unknown as File[]).map(async (file, index) => {
+          const filePath = `entries/${Date.now()}-${index}-${file.name}`;
+          
+          const { error: uploadError } = await Promise.race([
+            supabase.storage
+              .from("scrapbook")
+              .upload(filePath, file, {
+                cacheControl: "3600",
+                upsert: false
+              }),
+            new Promise<{ error: Error }>((_,reject) => 
+              setTimeout(() => reject({ error: new Error("Upload timed out") }), 30000)
+            )
+          ]);
 
-        // Upload image with timeout handling
-        const uploadPromise = supabase.storage
-          .from("scrapbook")
-          .upload(filePath, file, {
-            cacheControl: "3600",
-            upsert: false
-          });
+          if (uploadError) {
+            throw new Error(`Upload Error: ${uploadError.message}`);
+          }
 
-        const { error: uploadError } = await Promise.race([
-          uploadPromise,
-          new Promise<{ error: Error }>((_, reject) =>
-            setTimeout(() => reject({ error: new Error("Upload timed out") }), 30000)
-          )
-        ]);
+          const { data: urlData } = supabase.storage
+            .from("scrapbook")
+            .getPublicUrl(filePath);
 
-        if (uploadError) {
-          throw new Error(`Upload Error: ${uploadError.message}`);
-        }
+          return {
+            url: urlData.publicUrl,
+            order: index
+          };
+        });
 
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from("scrapbook")
-          .getPublicUrl(filePath);
-        imageUrl = urlData.publicUrl;
+        images = await Promise.all(uploadPromises);
       }
 
-      // Insert entry with timeout handling
-      const insertPromise = supabase.from("scrapbook_entries").insert([
-        {
+      const { error: insertError } = await supabase
+        .from("scrapbook_entries")
+        .insert([{
           title: data.title,
           content: data.content,
-          entry_date: data.entry_date,
-          image_url: imageUrl,
+          entry_date: format(data.entry_date, "yyyy-MM-dd"),
+          images: images.map(img => ({
+            url: img.url,
+            order: img.order
+          })),
           location: data.location,
-          poster: data.poster,
-          submitted_by: null,
-        },
-      ]);
-
-      const { error: insertError } = await Promise.race([
-        insertPromise,
-        new Promise<{ error: Error }>((_, reject) =>
-          setTimeout(() => reject({ error: new Error("Database insertion timed out") }), 10000)
-        )
-      ]);
+          poster: data.poster || 'anonymous',
+          date_added: new Date().toISOString(),
+        }])
+        .select();
 
       if (insertError) {
-        throw new Error(`Database Error: ${insertError.message}`);
+        console.error("Insert Error:", insertError);
+        throw insertError;
       }
 
       toast({
         title: "Success",
-        description: "Your scrapbook entry was added successfully.",
+        description: "Entry added successfully",
       });
-
+      
       mutate("scrapbookEntries");
       router.push("/scrapbook");
-
     } catch (error) {
-      console.error("Error:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "Failed to add entry",
       });
     } finally {
       setIsSubmitting(false);
@@ -191,16 +196,19 @@ export default function AddEntryPage() {
             </div>
             <ImagePreview
               files={form.watch("image")}
-              onRemove={(index) => {
+              onRemove={(index: number) => {
                 const currentFiles = form.watch("image");
                 if (!currentFiles) return;
                 
                 const dataTransfer = new DataTransfer();
-                Array.from(currentFiles)
+                Array.from(currentFiles as FileList)
                   .filter((_, i) => i !== index)
-                  .forEach(file => dataTransfer.items.add(file as File));
+                  .forEach(file => dataTransfer.items.add(file));
                 
                 form.setValue("image", dataTransfer.files);
+              }}
+              onReorder={(files) => {
+                form.setValue("image", files);
               }}
             />
           </div>

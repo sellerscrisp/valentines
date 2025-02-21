@@ -6,11 +6,17 @@ import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Download, Edit } from "lucide-react";
+import { MapPin, Download, Edit, MoreHorizontal } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { useSession } from "next-auth/react";
 import { EditEntryDialog } from "./EditEntryDialog";
 import { EntryCardProps } from "@/types/entry";
+import { EntryCardGallery } from "./EntryCardGallery";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 function shortenString(text: any, maxLength: number): string {
   if (typeof text !== "string") return "";
@@ -24,6 +30,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
   const [showActions, setShowActions] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Mobile detection hook
   useEffect(() => {
@@ -50,76 +57,65 @@ export default function EntryCard({ entry }: EntryCardProps) {
     "PPP"
   );
 
-  // Action buttons component
-  const ActionButtons = () => (
-    <div className={`absolute bottom-3 right-3 flex gap-2 items-center
-      ${isMobile ? (showActions ? 'flex' : 'hidden') : 'hidden group-hover:flex'}`}
-    >
-      {entry.image_url && entry.image_url.trim() !== "" && (
-        <Link
-          href={entry.image_url}
-          download
-          target="_blank"
-          rel="noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="flex items-center space-x-1 bg-primary px-3 py-1 rounded-full shadow text-sm font-medium text-white"
-        >
-          <Download className="h-4 w-4" />
-          <span>Save</span>
-        </Link>
-      )}
-      {session?.user?.email && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex items-center space-x-1 bg-primary px-3 py-1 rounded-full shadow text-sm font-medium text-white border-none"
-          onClick={(e) => {
-            e.stopPropagation();
-            setEditDialogOpen(true);
-          }}
-        >
-          <Edit className="h-4 w-4" />
-          <span>Edit</span>
-        </Button>
-      )}
+  const ActionMenu = ({ currentImageIndex }: { currentImageIndex: number }) => (
+    <div className="absolute top-2 right-2 z-30">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="icon" className="rounded-xl bg-black/20 hover:bg-black/40">
+            <MoreHorizontal className="h-5 w-5 text-white" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-50 bg-black/20 backdrop-blur-lg border-none rounded-xl shadow-lg" align="end" alignOffset={0} sideOffset={8}>
+          {(entry.images?.length ?? 0) > 0 && (
+            <Button
+              variant="default"
+              className="w-full justify-start"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(entry.images?.[currentImageIndex]?.url, '_blank');
+              }}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Save Image
+            </Button>
+          )}
+          {session?.user?.email && (
+            <Button
+              variant="secondary"
+              className="w-full justify-start mt-2 backdrop-blur-lg"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditDialogOpen(true);
+              }}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Entry
+            </Button>
+          )}
+        </PopoverContent>
+      </Popover>
     </div>
   );
 
   return (
     <Card
       onClick={handleCardClick}
-      className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
+      className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out h-full"
     >
-      {/* Image Section */}
-      <div className="relative aspect-[3/4]">
-        {entry.image_url && entry.image_url.trim() !== "" ? (
-          <>
-            {imageLoading && (
-              <div className="absolute inset-0 bg-gray-100 animate-pulse" />
-            )}
-            <Image
-              src={entry.image_url}
-              alt={entry.title || "Scrapbook entry image"}
-              fill
-              className={`object-cover transition-opacity duration-300 ${
-                imageLoading ? 'opacity-0' : 'opacity-100'
-              }`}
-              onLoadingComplete={() => setImageLoading(false)}
-              priority={false}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          </>
-        ) : (
-          <div className="bg-gray-200 w-full h-full flex items-center justify-center">
-            <span className="text-gray-500">No Image</span>
-          </div>
-        )}
+      {/* Image Section - Make sure this div takes up the correct space */}
+      <div className="relative w-full aspect-[3/4]">
+        <EntryCardGallery 
+          images={entry.images || []}
+          onImageLoad={() => setImageLoading(false)}
+          onCurrentIndexChange={setCurrentImageIndex}
+        />
+        
         {/* Location Overlay */}
-        <div className="absolute top-3 left-3 bg-white rounded-full px-3 py-1 text-xs font-semibold text-gray-700 flex items-center space-x-1">
+        <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold text-gray-700 flex items-center space-x-1 z-30">
           <MapPin className="w-3 h-3" />
           <span>{shortenString(entry.location, 25) || ""}</span>
         </div>
-        <ActionButtons />
+        <ActionMenu currentImageIndex={currentImageIndex} />
       </div>
 
       {/* Card Content */}
