@@ -1,14 +1,9 @@
 import "./globals.css";
-import { Inter, Great_Vibes } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
-const greatVibes = Great_Vibes({ 
-  weight: '400',
-  subsets: ['latin'],
-  display: 'swap',
-});
 
 export const metadata = {
   title: "Breaking: Putin Launches First Missile Strike",
