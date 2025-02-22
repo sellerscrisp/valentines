@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Download, Edit, MoreHorizontal } from "lucide-react";
-import { formatInTimeZone } from "date-fns-tz";
 import { useSession } from "next-auth/react";
 import { EditEntryDialog } from "./EditEntryDialog";
 import { EntryCardProps } from "@/types/entry";
@@ -15,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { formatDateForDisplay } from "@/lib/date";
 
 function shortenString(text: any, maxLength: number): string {
   if (typeof text !== "string") return "";
@@ -28,11 +28,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Format the date using UTC so the stored date is shown as entered.
-  const formattedDate = formatInTimeZone(
-    new Date(entry.entry_date),
-    "UTC",
-    "PPP"
-  );
+  const formattedDate = formatDateForDisplay(entry.entry_date);
 
   const ActionMenu = ({ currentImageIndex }: { currentImageIndex: number }) => (
     <div className="absolute top-2 right-2 z-30">

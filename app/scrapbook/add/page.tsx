@@ -18,6 +18,7 @@ import { mutate } from "swr";
 import { entrySchema, EntryFormData } from "@/types/form";
 import { useSession } from "next-auth/react";
 import { ImagePreview } from "./components/ImagePreview";
+import { formatDateForForm } from "@/lib/date";
 
 type ImageData = {
   url: string;
@@ -88,7 +89,7 @@ export default function AddEntryPage() {
         .insert([{
           title: data.title,
           content: data.content,
-          entry_date: format(data.entry_date, "yyyy-MM-dd"),
+          entry_date: formatDateForForm(data.entry_date),
           images: images.map(img => ({
             url: img.url,
             order: img.order

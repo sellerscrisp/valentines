@@ -11,23 +11,21 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
 import { EditEntryDialogProps } from "@/types/entry";
-import { CalendarIcon } from "lucide-react";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
-import { format } from "date-fns";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { formatDateForForm } from "@/lib/date";
 
 export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
   const form = useForm({
     defaultValues: {
       title: entry.title || "",
       content: entry.content,
       location: entry.location || "",
-      entry_date: format(new Date(entry.entry_date + "T00:00:00Z"), "yyyy-MM-dd"),
+      entry_date: formatDateForForm(entry.entry_date),
     },
   });
 
@@ -74,7 +72,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
         .update({
           title: data.title,
           content: data.content,
-          entry_date: format(data.entry_date, "yyyy-MM-dd"),
+          entry_date: formatDateForForm(data.entry_date),
           images,
           location: data.location,
         })
@@ -157,12 +155,12 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="bg-white/70 backdrop-blur-lg border-none shadow-xl rounded-xl max-w-2xl mx-auto">
+        <DialogContent className="bg-background/70 backdrop-blur-lg border-none shadow-xl rounded-xl max-w-2xl mx-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-transparent bg-clip-text">
+            <DialogTitle className="text-2xl font-bold text-primary">
               Edit Memory
             </DialogTitle>
-            <DialogDescription className="text-gray-600">
+            <DialogDescription className="text-muted-foreground">
               Make changes to your memory here. Click save when you&apos;re done.
             </DialogDescription>
           </DialogHeader>
@@ -170,55 +168,41 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="space-y-4">
               <div className="grid gap-2">
-                <Label className="text-gray-700">Title</Label>
-                <Input 
-                  {...form.register("title")} 
-                  className="bg-white/50 border-gray-200 text-gray-900 placeholder:text-gray-400"
+                <Label className="text-foreground">Title</Label>
+                <Input
+                  {...form.register("title")}
+                  className="bg-white/50 border-input text-foreground placeholder:text-muted-foreground"
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label className="text-gray-700">Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="bg-white/10 border-none text-white hover:bg-white/20 justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {form.watch("entry_date") ? 
-                        format(new Date(form.watch("entry_date")), "PPP") : 
-                        "Pick a date"
-                      }
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-black/40 backdrop-blur-lg border-none">
-                    <Calendar
-                      mode="single"
-                      selected={form.watch("entry_date") ? new Date(form.watch("entry_date") + "T00:00:00") : undefined}
-                      onSelect={(date) => {
-                        form.setValue("entry_date", date ? format(date, "yyyy-MM-dd") : "");
-                      }}
-                      initialFocus
-                      className="bg-transparent text-white"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="grid gap-2">
-                <Label className="text-gray-700">Content</Label>
-                <Textarea 
-                  {...form.register("content")} 
-                  className="bg-white/50 border-gray-200 text-gray-900 min-h-[100px] placeholder:text-gray-400"
+                <Label className="text-foreground">Date</Label>
+                <Input
+                  type="date"
+                  {...form.register("entry_date", {
+                    required: "Date is required",
+                    validate: (value) => {
+                      const date = new Date(value);
+                      return !isNaN(date.getTime()) || "Invalid date";
+                    }
+                  })}
+                  className="bg-white/50 border-input text-foreground"
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label className="text-gray-700">Location</Label>
-                <Input 
-                  {...form.register("location")} 
-                  className="bg-white/50 border-gray-200 text-gray-900 placeholder:text-gray-400"
+                <Label className="text-foreground">Content</Label>
+                <Textarea
+                  {...form.register("content")}
+                  className="bg-white/50 border-input text-foreground min-h-[100px] placeholder:text-muted-foreground"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label className="text-foreground">Location</Label>
+                <Input
+                  {...form.register("location")}
+                  className="bg-white/50 border-input text-foreground placeholder:text-muted-foreground"
                 />
               </div>
             </div>
@@ -228,14 +212,14 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
                 type="button"
                 variant="ghost"
                 onClick={() => setShowDeleteConfirmation(true)}
-                className="bg-red-500/10 text-red-600 hover:bg-red-500/20 hover:text-red-700"
+                className="bg-destructive/10 text-destructive hover:bg-destructive/20"
               >
                 Delete Entry
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-white hover:opacity-90"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {isSubmitting ? "Saving..." : "Save changes"}
               </Button>

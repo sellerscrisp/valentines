@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { format } from "date-fns";
+import { formatDateForDisplay } from "@/lib/date";
 
 interface Entry {
   id: string;
@@ -76,7 +76,7 @@ export default function BookView({ onClose }: BookViewProps) {
             {currentEntry.title || "Untitled Memory"}
           </h2>
           <p className="text-sm text-gray-600 mb-2">
-            {format(new Date(currentEntry.entry_date), "PPP")}{" "}
+            {formatDateForDisplay(currentEntry.entry_date)}{" "}
             {currentEntry.location && `- ${currentEntry.location}`}
           </p>
           <p className="text-lg text-center max-w-md">{currentEntry.content}</p>

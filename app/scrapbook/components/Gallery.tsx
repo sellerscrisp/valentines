@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { SkeletonCard } from "./SkeletonCard";
 import SortDropdown from "./SortDropdown";
 import { SortOption } from "@/types/sort";
+import { formatDateForForm } from "@/lib/date";
 
 interface Entry {
   id: string;
@@ -55,7 +56,9 @@ export default function Gallery() {
     );
   } else if (sortOption === "entryDate") {
     sortedEntries.sort(
-      (a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime()
+      (a, b) => 
+        new Date(formatDateForForm(b.entry_date)).getTime() - 
+        new Date(formatDateForForm(a.entry_date)).getTime()
     );
   } else if (sortOption === "poster") {
     sortedEntries.sort((a, b) => a.poster.localeCompare(b.poster));
