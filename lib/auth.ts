@@ -9,7 +9,7 @@ const userDisplayNames: Record<string, string> = {
   "amherring11@gmail.com": "Abby"
 };
 
-export const config = {
+export const authOptions: NextAuthConfig = {
   providers: [
     GoogleProvider({
       clientId: process.env.PROD_AUTH_GOOGLE_ID!,
@@ -51,4 +51,4 @@ export const config = {
   },
 } satisfies NextAuthConfig;
 
-export const { handlers, auth, signIn, signOut } = NextAuth(config);
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);

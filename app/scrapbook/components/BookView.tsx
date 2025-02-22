@@ -56,8 +56,8 @@ export default function BookView({ onClose }: BookViewProps) {
   const currentEntry = entries[currentPage];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
-      <div className="relative bg-white w-full h-full p-4 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background via-red-300 to-red-200 animate-gradient-xy p-8">
+      <div className="max-w-2xl mx-auto space-y-8">
         <motion.div
           key={currentEntry.id}
           initial={{ rotateY: 90, opacity: 0 }}

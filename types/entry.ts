@@ -8,6 +8,7 @@ export interface Entry {
   location?: string;
   poster: string;
   submitted_by?: string | null;
+  comment_count?: number;
 }
 
 export interface EntryCardProps {

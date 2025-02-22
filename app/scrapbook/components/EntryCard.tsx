@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Download, Edit, MoreHorizontal } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -15,6 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { formatDateForDisplay } from "@/lib/date";
+import { CommentsDrawer } from "./comments/CommentsDrawer";
 
 function shortenString(text: any, maxLength: number): string {
   if (typeof text !== "string") return "";
@@ -26,6 +27,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
   const { data: session } = useSession();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Format the date using UTC so the stored date is shown as entered.
   const formattedDate = formatDateForDisplay(entry.entry_date);
@@ -76,13 +78,13 @@ export default function EntryCard({ entry }: EntryCardProps) {
     >
       {/* Image Section - Make sure this div takes up the correct space */}
       <div className="relative w-full aspect-[3/4]">
-        <EntryCardGallery 
+        <EntryCardGallery
           images={entry.images || []}
           onCurrentIndexChange={setCurrentImageIndex}
         />
-        
+
         {/* Location Overlay */}
-        <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold text-gray-700 flex items-center space-x-1 z-30">
+        <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold text-gray-700 flex items-center space-x-1">
           <MapPin className="w-3 h-3" />
           <span>{shortenString(entry.location, 25) || ""}</span>
         </div>
@@ -91,13 +93,25 @@ export default function EntryCard({ entry }: EntryCardProps) {
 
       {/* Card Content */}
       <CardContent className="p-4">
-        <CardTitle>
-          <p className="text-sm text-gray-600">{entry.title}</p>
-        </CardTitle>
-        <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-          {entry.content}
-        </p>
-        <div className="flex items-center justify-between">
+        <h1 className="text-md font-bold text-gray-600 mb-1 mt-2">{entry.title}</h1>
+
+
+        {/* Memory content with expand/collapse */}
+        <div className="relative">
+          <p className={`text-sm text-gray-600 ${!isExpanded ? 'line-clamp-2' : ''}`}>
+            {entry.content}
+          </p>
+          {entry.content.length > 100 && !isExpanded && (
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              more
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between mt-2">
           <div className="flex items-center space-x-2">
             <Avatar className="w-8 h-8">
               <AvatarImage
@@ -114,8 +128,13 @@ export default function EntryCard({ entry }: EntryCardProps) {
           </div>
           <span className="text-xs text-gray-500">{formattedDate}</span>
         </div>
+
+        {/* Comments section using Drawer */}
+        <div className="mt-2">
+          <CommentsDrawer entryId={entry.id} />
+        </div>
       </CardContent>
-      <EditEntryDialog 
+      <EditEntryDialog
         entry={entry}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
