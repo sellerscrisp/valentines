@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
  */
 export const POST = withAuth<{ commentId: string }>(async (req, context, session) => {
   try {
-    const { commentId } = await context.params;
+    const { commentId } = context.params;
     const { reactionType } = await req.json();
 
     // Check if reaction already exists
@@ -49,7 +49,7 @@ export const POST = withAuth<{ commentId: string }>(async (req, context, session
  */
 export const DELETE = withAuth<{ commentId: string }>(async (req, context, session) => {
   try {
-    const { commentId } = await context.params;
+    const { commentId } = context.params;
     const { reactionType } = await req.json();
 
     const { error } = await supabase

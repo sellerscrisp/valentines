@@ -17,7 +17,7 @@ export const withAuth = <P extends Record<string, string>>(
     req: Request,
     context: { params: P }
   ): Promise<NextResponse> => {
-    const session = await authenticate(req);
+    const session = await authenticate();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
