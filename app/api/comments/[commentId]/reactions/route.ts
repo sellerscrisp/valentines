@@ -1,32 +1,20 @@
 import { NextResponse } from "next/server";
-import { withAuth } from "@/lib/baseHandler";
+import { auth } from "@/lib/auth";
 import { supabase } from "@/lib/supabaseClient";
+import { withAuth } from "@/lib/baseHandler";
 
-export const POST = withAuth(async (
+export async function POST(
   req: Request,
-  { params }: { params: { commentId: string } },
-  session: any
-) => {
+  { params }: { params: { commentId: string } }
+) {
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { commentId } = params;
     const { reactionType } = await req.json();
-
-    // Check if reaction already exists
-    const { data: existingReaction, error: checkError } = await supabase
-      .from("comment_reactions")
-      .select("*")
-      .eq("comment_id", commentId)
-      .eq("user_id", session.user.email)
-      .eq("reaction_type", reactionType)
-      .single();
-
-    if (checkError && checkError.code !== 'PGRST116') {
-      return NextResponse.json({ error: checkError.message }, { status: 500 });
-    }
-
-    if (existingReaction) {
-      return NextResponse.json(existingReaction);
-    }
 
     const { data: reaction, error } = await supabase
       .from("comment_reactions")
@@ -43,13 +31,17 @@ export const POST = withAuth(async (
   } catch {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-});
+}
 
-export const DELETE = withAuth(async (
+export async function DELETE(
   req: Request,
-  { params }: { params: { commentId: string } },
-  session: any
-) => {
+  { params }: { params: { commentId: string } }
+) {
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { commentId } = params;
     const { reactionType } = await req.json();
@@ -66,7 +58,7 @@ export const DELETE = withAuth(async (
   } catch {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-});
+}
 
 export const PATCH = withAuth(async (req, { params }: { params: { commentId: string } }, session) => {
   const { commentId } = params;
