@@ -3,8 +3,25 @@ import { auth } from "@/lib/auth";
 import { supabase } from "@/lib/supabaseClient";
 import { withAuth } from "@/lib/baseHandler";
 
-export async function POST(req: Request, context: { params: Record<string, string> }) {
-  const { commentId } = context.params;
+// GET handler: Fetch all reactions for a given comment
+export async function GET(req: Request, context: any) {
+  const { commentId } = context.params as { commentId: string };
+
+  const { data, error } = await supabase
+    .from("comment_reactions")
+    .select("*")
+    .eq("comment_id", commentId);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json(data);
+}
+
+// POST handler: Create a reaction for a comment
+export async function POST(req: Request, context: any) {
+  const { commentId } = context.params as { commentId: string };
+
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -32,8 +49,10 @@ export async function POST(req: Request, context: { params: Record<string, strin
   }
 }
 
-export async function DELETE(req: Request, context: { params: Record<string, string> }) {
-  const { commentId } = context.params;
+// DELETE handler: Remove a reaction from a comment
+export async function DELETE(req: Request, context: any) {
+  const { commentId } = context.params as { commentId: string };
+
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -58,33 +77,38 @@ export async function DELETE(req: Request, context: { params: Record<string, str
   }
 }
 
-export const PATCH = withAuth(async (req: Request, context: { params: Record<string, string> }, session) => {
-  const { commentId } = context.params;
-  const { content } = await req.json();
+// PATCH handler: Update a comment (ownership is verified via withAuth)
+export const PATCH = withAuth(
+  async (req: Request, context: any, session) => {
+    const { commentId } = context.params as { commentId: string };
+    const { content } = await req.json();
 
-  // Verify ownership
-  const { data: comment, error: fetchError } = await supabase
-    .from("comments")
-    .select("user_id")
-    .eq("id", commentId)
-    .single();
+    // Verify ownership
+    const { data: comment, error: fetchError } = await supabase
+      .from("comments")
+      .select("user_id")
+      .eq("id", commentId)
+      .single();
 
-  if (fetchError) {
-    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    if (fetchError) {
+      return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    }
+
+    if (comment?.user_id !== session.user.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Update the comment
+    const { data, error } = await supabase
+      .from("comments")
+      .update({ content, is_edited: true, updated_at: new Date().toISOString() })
+      .eq("id", commentId)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json(data);
   }
-
-  if (comment?.user_id !== session.user.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // Update the comment
-  const { data, error } = await supabase
-    .from("comments")
-    .update({ content, is_edited: true, updated_at: new Date().toISOString() })
-    .eq("id", commentId)
-    .select()
-    .single();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
-});
+);
