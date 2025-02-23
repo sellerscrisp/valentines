@@ -8,10 +8,12 @@ export async function GET(
   context: { params: Promise<Record<string, string>> }
 ) {
   const { commentId } = await context.params;
+
   const { data, error } = await supabase
-    .from("comment_reactions")
+    .from("comments")
     .select("*")
-    .eq("comment_id", commentId);
+    .eq("id", commentId)
+    .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
