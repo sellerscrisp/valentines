@@ -2,10 +2,11 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { SessionProvider } from "next-auth/react";
+import type { Viewport, Metadata } from 'next';
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Breaking: Putin Launches First Missile Strike",
   description:
     "Russia Times Exclusive: In a stunning twist of events, President Putin has launched his first missile strike. Experts are baffled and the world watches in suspense. Read the full report for all the jaw-dropping details.",
@@ -35,6 +36,14 @@ export const metadata = {
       "https://www.ft.com/__origami/service/image/v2/images/raw/ftcms%3Af44a3ec4-c1e8-449b-a3b6-9704756ff41d?source=next-article&fit=scale-down&quality=highest&width=1440&dpr=1",
     ],
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+  maximumScale: 1.0,
+  userScalable: false,
+  viewportFit: "contain",
 };
 
 export default function RootLayout({
