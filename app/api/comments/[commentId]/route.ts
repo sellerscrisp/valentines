@@ -1,12 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { supabase } from "@/lib/supabaseClient";
-import { withAuth } from "@/lib/baseHandler";
 
 /**
  * GET handler to fetch a specific comment by ID.
  */
-export async function GET(req: Request, context: { params: { commentId: string } }) {
-  const { commentId } = context.params;
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ commentId: string }> }
+) {
+  const { commentId } = await params;
 
   const { data, error } = await supabase
     .from("comments")
@@ -21,9 +24,12 @@ export async function GET(req: Request, context: { params: { commentId: string }
 /**
  * DELETE handler to remove a comment.
  */
-export const DELETE = withAuth<{ commentId: string }>(async (req, context, session) => {
-  const params = await context.params;
-  const commentId = params.commentId;
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ commentId: string }> }
+) {
+  const { commentId } = await params;
+  const session = await auth();
 
   // Verify ownership
   const { data: comment, error: fetchError } = await supabase
@@ -36,7 +42,7 @@ export const DELETE = withAuth<{ commentId: string }>(async (req, context, sessi
     return NextResponse.json({ error: fetchError.message }, { status: 500 });
   }
 
-  if (comment?.user_id !== session.user.email) {
+  if (comment?.user_id !== session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -47,13 +53,17 @@ export const DELETE = withAuth<{ commentId: string }>(async (req, context, sessi
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });
-});
+}
 
 /**
  * PATCH handler to update a comment's content.
  */
-export const PATCH = withAuth<{ commentId: string }>(async (req, context, session) => {
-  const { commentId } = context.params;
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ commentId: string }> }
+) {
+  const { commentId } = await params;
+  const session = await auth();
   const { content } = await req.json();
 
   // Verify ownership
@@ -67,7 +77,7 @@ export const PATCH = withAuth<{ commentId: string }>(async (req, context, sessio
     return NextResponse.json({ error: fetchError.message }, { status: 500 });
   }
 
-  if (comment?.user_id !== session.user.email) {
+  if (comment?.user_id !== session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -81,4 +91,4 @@ export const PATCH = withAuth<{ commentId: string }>(async (req, context, sessio
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
-}); 
+} 

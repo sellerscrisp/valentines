@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabase } from "@/lib/supabaseClient";
 
 // GET handler: Fetch all reactions for a given comment
 export async function GET(
-  req: Request,
-  context: { params: Promise<Record<string, string>> }
+  req: NextRequest,
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
-  const { commentId } = await context.params;
+  const { commentId } = await params;
 
   const { data, error } = await supabase
     .from("comments")
@@ -23,10 +23,10 @@ export async function GET(
 
 // POST handler: Create a reaction for a comment
 export async function POST(
-  req: Request,
-  context: { params: Promise<Record<string, string>> }
+  req: NextRequest,
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
-  const { commentId } = await context.params;
+  const { commentId } = await params;
 
   const session = await auth();
   if (!session?.user?.email) {
@@ -60,10 +60,10 @@ export async function POST(
 
 // DELETE handler: Remove a reaction from a comment
 export async function DELETE(
-  req: Request,
-  context: { params: Promise<Record<string, string>> }
+  req: NextRequest,
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
-  const { commentId } = await context.params;
+  const { commentId } = await params;
 
   const session = await auth();
   if (!session?.user?.email) {
@@ -94,10 +94,10 @@ export async function DELETE(
 
 // PATCH handler: Update a comment (ownership verified directly in the route handler)
 export async function PATCH(
-  req: Request,
-  context: { params: Promise<Record<string, string>> }
+  req: NextRequest,
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
-  const { commentId } = await context.params;
+  const { commentId } = await params;
 
   const session = await auth();
   if (!session?.user?.email) {

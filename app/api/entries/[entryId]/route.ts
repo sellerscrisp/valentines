@@ -1,9 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
-import { withAuth } from "@/lib/baseHandler";
+import { auth } from "@/lib/auth";
 
-export const GET = withAuth<{ entryId: string }>(async (req) => {
-  const { entryId } = (req as any).params;
+// GET handler: Fetch a scrapbook entry by entryId
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ entryId: string }> }
+) {
+  const { entryId } = await params;
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { data: entry, error } = await supabase
     .from("scrapbook_entries")
@@ -16,11 +24,21 @@ export const GET = withAuth<{ entryId: string }>(async (req) => {
   }
 
   return NextResponse.json(entry);
-});
+}
 
-export const DELETE = withAuth(async (req: Request, session: any) => {
-  const { entryId } = (req as any).params;
+// DELETE handler: Delete a scrapbook entry by entryId
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ entryId: string }> }
+) {
+  const { entryId } = await params;
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
+  // Verify ownership
+  // Verify ownership
   const { data: entry, error: fetchError } = await supabase
     .from("scrapbook_entries")
     .select("user_id")
@@ -40,6 +58,8 @@ export const DELETE = withAuth(async (req: Request, session: any) => {
     .delete()
     .eq("id", entryId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
-}); 
+}

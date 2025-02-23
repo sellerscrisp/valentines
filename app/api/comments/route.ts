@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
-import { withAuth } from "@/lib/baseHandler";
+import { auth } from "@/lib/auth";
 
 /**
  * GET handler to fetch comments based on `entryId`.
@@ -61,9 +61,14 @@ export async function GET(request: Request) {
  * POST handler to add a new comment.
  * This route requires authentication.
  */
-export const POST = withAuth(async (req, context, session) => {
+  export async function POST(request: Request) {
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const { entryId, content, parentId } = await req.json();
+    const { entryId, content, parentId } = await request.json();
 
     if (!content?.trim()) {
       return NextResponse.json({ error: "Content is required" }, { status: 400 });
@@ -94,4 +99,4 @@ export const POST = withAuth(async (req, context, session) => {
       { status: 500 }
     );
   }
-}); 
+} 
