@@ -2,12 +2,9 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/baseHandler";
 import { supabase } from "@/lib/supabaseClient";
 
-/**
- * POST handler to add or update a reaction to a comment.
- */
-export const POST = withAuth<{ commentId: string }>(async (req, context, session) => {
+export const POST = withAuth(async (req, { params }: { params: { commentId: string } }, session) => {
   try {
-    const { commentId } = context.params;
+    const { commentId } = params;
     const { reactionType } = await req.json();
 
     // Check if reaction already exists
@@ -44,12 +41,9 @@ export const POST = withAuth<{ commentId: string }>(async (req, context, session
   }
 });
 
-/**
- * DELETE handler to remove a reaction from a comment.
- */
-export const DELETE = withAuth<{ commentId: string }>(async (req, context, session) => {
+export const DELETE = withAuth(async (req, { params }: { params: { commentId: string } }, session) => {
   try {
-    const { commentId } = context.params;
+    const { commentId } = params;
     const { reactionType } = await req.json();
 
     const { error } = await supabase
@@ -66,11 +60,8 @@ export const DELETE = withAuth<{ commentId: string }>(async (req, context, sessi
   }
 });
 
-/**
- * PATCH handler to update a comment's content.
- */
-export const PATCH = withAuth<{ commentId: string }>(async (req, context, session) => {
-  const { commentId } = context.params;
+export const PATCH = withAuth(async (req, { params }: { params: { commentId: string } }, session) => {
+  const { commentId } = params;
   const { content } = await req.json();
 
   // Verify ownership
