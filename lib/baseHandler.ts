@@ -6,21 +6,18 @@ import { authenticate } from "@/lib/authCheck";
  * @param handler - The API route handler function.
  * @returns A new handler that includes authentication logic.
  */
-export const withAuth = <P extends Record<string, string>>(
+export function withAuth<T extends { [K: string]: string }>(
   handler: (
     req: Request,
-    context: { params: P },
+    context: { params: T },
     session: any
   ) => Promise<NextResponse>
-) => {
-  return async (
-    req: Request,
-    context: { params: P }
-  ): Promise<NextResponse> => {
+) {
+  return async (req: Request, context: { params: T }) => {
     const session = await authenticate();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return new NextResponse("Unauthorized", { status: 401 });
     }
     return handler(req, context, session);
   };
-}; 
+} 
