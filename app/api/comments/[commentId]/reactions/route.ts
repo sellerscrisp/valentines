@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/baseHandler";
 import { supabase } from "@/lib/supabaseClient";
 
-export const POST = withAuth(async (req, { params }: { params: { commentId: string } }, session) => {
+export const POST = withAuth(async (req, context, session) => {
   try {
-    const { commentId } = params;
+    const { commentId } = context.params;
     const { reactionType } = await req.json();
 
     // Check if reaction already exists
@@ -41,9 +41,9 @@ export const POST = withAuth(async (req, { params }: { params: { commentId: stri
   }
 });
 
-export const DELETE = withAuth(async (req, { params }: { params: { commentId: string } }, session) => {
+export const DELETE = withAuth(async (req, context, session) => {
   try {
-    const { commentId } = params;
+    const { commentId } = context.params;
     const { reactionType } = await req.json();
 
     const { error } = await supabase
