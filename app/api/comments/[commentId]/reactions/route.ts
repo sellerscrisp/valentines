@@ -93,14 +93,15 @@ export async function DELETE(
 // PATCH handler: Update a comment (ownership verified directly in the route handler)
 export async function PATCH(
   req: Request,
-  { params }: { params: { commentId: string } }
+  context: { params: Promise<Record<string, string>> }
 ) {
+  const { commentId } = await context.params;
+
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { commentId } = params;
   const { content } = await req.json();
 
   // Verify ownership
