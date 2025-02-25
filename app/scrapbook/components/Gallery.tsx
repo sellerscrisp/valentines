@@ -10,14 +10,14 @@ import { SortOption } from "@/types/sort";
 import { formatDateForForm } from "@/lib/date";
 import { Entry } from "@/types/entry";
 import SmoothReveal from "@/components/animations/smooth-reveal";
-// Fetcher function to get entries from Supabase.
+
+// Fetcher function to get entries from API
 const fetchEntries = async () => {
-  const { data, error } = await supabase
-    .from("scrapbook_entries")
-    .select("*")
-    .order("date_added", { ascending: false });
-  if (error) throw new Error(error.message);
-  return data;
+  const res = await fetch('/api/entries');
+  if (!res.ok) {
+    throw new Error('Failed to fetch entries');
+  }
+  return res.json();
 };
 
 export default function Gallery() {
@@ -35,14 +35,14 @@ export default function Gallery() {
     );
   }
 
-  // Cast data to Entry array.
+  // Cast data to Entry array
   const entries = data as Entry[];
 
-  // Sort the entries based on the selected sort option.
+  // Sort the entries based on the selected sort option
   const sortedEntries = [...entries];
   if (sortOption === "dateAdded") {
     sortedEntries.sort(
-      (a, b) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime()
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   } else if (sortOption === "entryDate") {
     sortedEntries.sort(
