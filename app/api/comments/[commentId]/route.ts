@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabase } from "@/lib/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseClient";
 
 /**
  * GET handler to fetch a specific comment by ID.
@@ -25,40 +26,30 @@ export async function GET(
  * DELETE handler to remove a comment.
  */
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ commentId: string }> }
+  request: Request,
+  { params }: { params: { commentId: string } }
 ) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const { commentId } = await params;
-    const session = await auth();
-
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (!supabaseAdmin) {
+      throw new Error("Supabase admin client not available");
     }
 
-    // First verify the user owns this comment
-    const { data: comment } = await supabase
-      .from('comments')
-      .select('user_id')
-      .eq('id', commentId)
-      .single();
-
-    if (!comment || comment.user_id !== session.user?.id) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
-    // Delete the comment
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('comments')
       .delete()
-      .eq('id', commentId);
+      .eq('id', params.commentId)
+      .eq('user_id', session.user.id);
 
     if (error) throw error;
-
-    return new NextResponse(null, { status: 200 });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting comment:', error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json({ error: "Failed to delete comment" }, { status: 500 });
   }
 }
 

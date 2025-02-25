@@ -1,60 +1,37 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
 import { auth } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabaseClient";
 
 /**
  * GET handler to fetch comments based on `entryId`.
- * This route doesn't require authentication.
+ * This route requires authentication.
  */
 export async function GET(request: Request) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
-  const entryId = searchParams.get("entryId");
+  const entryId = searchParams.get('entryId');
 
-  if (!entryId) {
-    return NextResponse.json({ error: "Entry ID is required" }, { status: 400 });
+  if (!entryId || !supabaseAdmin) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  // First, get all parent comments
-  const { data: parentComments, error: parentError } = await supabase
-    .from("comments")
-    .select(`
-      *,
-      reactions:comment_reactions(*)
-    `)
-    .eq("entry_id", entryId)
-    .is("parent_id", null)
-    .order("created_at", { ascending: false });
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('comments')
+      .select('*, reactions(*)')
+      .eq('entry_id', entryId)
+      .order('created_at', { ascending: true });
 
-  if (parentError) {
-    console.error("Parent comments error:", parentError);
-    return NextResponse.json({ error: parentError.message }, { status: 500 });
+    if (error) throw error;
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    return NextResponse.json({ error: "Failed to fetch comments" }, { status: 500 });
   }
-
-  // Then, get replies for each parent comment
-  const commentsWithReplies = await Promise.all(
-    (parentComments || []).map(async (comment) => {
-      const { data: replies, error: repliesError } = await supabase
-        .from("comments")
-        .select(`
-          *,
-          reactions:comment_reactions(*)
-        `)
-        .eq("parent_id", comment.id)
-        .order("created_at", { ascending: true });
-
-      if (repliesError) {
-        console.error("Replies error:", repliesError);
-        return comment;
-      }
-
-      return {
-        ...comment,
-        replies: replies || []
-      };
-    })
-  );
-
-  return NextResponse.json(commentsWithReplies);
 }
 
 /**
@@ -63,36 +40,32 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const body = await request.json() as { 
-      entryId: string;
-      content: string;
-      parentId?: string;
-    };
-    const { entryId, content, parentId } = body;
+    const { entryId, content } = await request.json() as { entryId: string; content: string };
+    
+    if (!supabaseAdmin) {
+      throw new Error("Supabase admin client not available");
+    }
 
-    const { data: comment, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('comments')
       .insert({
-        content,
         entry_id: entryId,
-        parent_id: parentId || null,
+        content,
         user_id: session.user.id,
-        user_name: session.user.name || 'Anonymous',
-        user_email: session.user.email
+        user_name: session.user.name || 'Anonymous'
       })
       .select()
       .single();
 
     if (error) throw error;
-
-    return NextResponse.json(comment);
+    return NextResponse.json(data);
   } catch (error) {
-    console.error('Insert comment error:', error);
+    console.error('Error adding comment:', error);
     return NextResponse.json({ error: "Failed to add comment" }, { status: 500 });
   }
 } 

@@ -38,9 +38,9 @@ export default function ScrapbookPage() {
         <Gallery />
       </div>
       
-      <p className="bg-background">mo</p>
-      <p className="bg-background">moo</p>
-      <p className="bg-background">mooo</p>
+      <p className="text-background">I</p>
+      <p className="text-background">Love</p>
+      <p className="text-background">You</p>
 
       {/* Overlay for BookView */}
       {showBookView && <BookView onClose={() => setShowBookView(false)} />}
