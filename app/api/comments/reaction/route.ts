@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseClient";
+import { createAdminClient } from "@/lib/supabaseClient";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -10,13 +10,10 @@ export async function POST(request: Request) {
 
   try {
     const { commentId, reactionType } = await request.json() as { commentId: string; reactionType: string };
+    const supabaseAdmin = createAdminClient();
     
-    if (!supabaseAdmin) {
-      throw new Error("Supabase admin client not available");
-    }
-
     const { error } = await supabaseAdmin
-      .from('reactions')
+      .from('comment_reactions')
       .insert({
         comment_id: commentId,
         user_id: session.user.id,
@@ -39,13 +36,10 @@ export async function DELETE(request: Request) {
 
   try {
     const { commentId, reactionType } = await request.json() as { commentId: string; reactionType: string };
+    const supabaseAdmin = createAdminClient();
     
-    if (!supabaseAdmin) {
-      throw new Error("Supabase admin client not available");
-    }
-
     const { error } = await supabaseAdmin
-      .from('reactions')
+      .from('comment_reactions')
       .delete()
       .match({
         comment_id: commentId,

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseClient";
+import { createAdminClient } from "@/lib/supabaseClient";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -9,26 +9,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { entryId, content, parentId } = await request.json() as { 
-      entryId: string; 
-      content: string;
-      parentId: string;
-    };
+    const { parentId, content } = await request.json() as { parentId: string; content: string };
+    const supabaseAdmin = createAdminClient();
     
-    if (!supabaseAdmin) {
-      throw new Error("Supabase admin client not available");
-    }
-
     const { data, error } = await supabaseAdmin
       .from('comments')
       .insert({
-        entry_id: entryId,
-        content,
         parent_id: parentId,
-        user_id: session.user.id,
-        user_name: session.user.name || 'Anonymous'
+        content,
+        user_id: session.user.id
       })
-      .select()
+      .select('*, user:users(name, avatar_url)')
       .single();
 
     if (error) throw error;

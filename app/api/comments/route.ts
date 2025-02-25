@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseClient";
+import { createAdminClient } from "@/lib/supabaseClient";
 
 /**
  * GET handler to fetch comments based on `entryId`.
@@ -15,11 +15,12 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const entryId = searchParams.get('entryId');
 
-  if (!entryId || !supabaseAdmin) {
+  if (!entryId) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
   try {
+    const supabaseAdmin = createAdminClient();
     const { data, error } = await supabaseAdmin
       .from('comments')
       .select('*, reactions(*)')
@@ -46,10 +47,7 @@ export async function POST(request: Request) {
 
   try {
     const { entryId, content } = await request.json() as { entryId: string; content: string };
-    
-    if (!supabaseAdmin) {
-      throw new Error("Supabase admin client not available");
-    }
+    const supabaseAdmin = createAdminClient();
 
     const { data, error } = await supabaseAdmin
       .from('comments')

@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import { type NextAuthConfig } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { supabaseAdmin } from "./supabaseClient";
+import { createAdminClient } from "./supabaseClient";
 
 const allowedEmails = ["sellershcrisp@gmail.com", "amherring11@gmail.com"];
 
@@ -25,10 +25,7 @@ export const authOptions: NextAuthConfig = {
       }
 
       try {
-        if (!supabaseAdmin) {
-          console.error("Supabase admin client not initialized");
-          return "/error";
-        }
+        const supabaseAdmin = createAdminClient();
 
         // First try to find existing user by email
         const { data: existingUser } = await supabaseAdmin

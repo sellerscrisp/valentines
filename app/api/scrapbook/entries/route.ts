@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
-import { supabaseAdmin } from "@/lib/supabaseClient";
+import { createAdminClient } from "@/lib/supabaseClient";
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -8,11 +8,12 @@ export async function GET(request: Request) {
     const email = searchParams.get('email');
     const limit = 10;
 
-    if (!email || !supabaseAdmin) {
+    if (!email || !createAdminClient) {
         return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
     try {
+        const supabaseAdmin = createAdminClient();
         const { data: entries, error } = await supabaseAdmin
             .from('scrapbook_entries')
             .select(`

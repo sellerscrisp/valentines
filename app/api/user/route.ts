@@ -1,51 +1,57 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseClient";
+import { createAdminClient } from "@/lib/supabaseClient";
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!supabaseAdmin) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  try {
+    const supabaseAdmin = createAdminClient();
+    const { data: user, error } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    // Try to get existing user
-    let { data: user } = await supabaseAdmin
-      .from("users")
-      .select("*")
-      .eq("id", session.user.id)
+    const updates = await request.json() as Record<string, unknown>;
+    const supabaseAdmin = createAdminClient();
+    
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', session.user.id)
+      .select()
       .single();
 
-    // If user doesn't exist, create new user
-    if (!user) {
-      const { data: newUser, error: createError } = await supabaseAdmin
-        .from("users")
-        .insert({
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.name || null,
-          avatar_url: session.user.image || null
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        throw createError;
-      }
-
-      user = newUser;
+    if (error) {
+      throw error;
     }
-
-    return NextResponse.json(user);
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("User operation failed:", error);
-    return NextResponse.json(
-      { error: "Failed to get or create user" },
-      { status: 500 }
-    );
+    console.error('Error updating user:', error);
+    return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
   }
 } 

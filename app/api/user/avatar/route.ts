@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseClient";
+import { createAdminClient } from "@/lib/supabaseClient";
 import { uploadToCloudflare } from "@/lib/cloudflareClient";
 
 // Add GET handler
@@ -9,11 +9,12 @@ export async function GET(request: Request) {
   const userId = searchParams.get('userId');
   const email = searchParams.get('email');
 
-  if (!userId && !email || !supabaseAdmin) {
+  if (!userId && !email) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
   try {
+    const supabaseAdmin = createAdminClient();
     const { data: user } = await supabaseAdmin
       .from('users')
       .select('avatar_url')
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     
-    if (!file || !supabaseAdmin) {
+    if (!file) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
@@ -61,6 +62,7 @@ export async function POST(request: Request) {
     // Upload to Cloudflare R2
     const publicUrl = await uploadToCloudflare(filePath, file);
 
+    const supabaseAdmin = createAdminClient();
     // Update user profile with new avatar URL
     const { error: updateError } = await supabaseAdmin
       .from('users')

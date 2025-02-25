@@ -2,26 +2,26 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_KEY!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Client for browser usage (limited by RLS)
+// Create a single supabase instance for the client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Admin client only for server-side usage
-export const supabaseAdmin = typeof window === 'undefined' 
-  ? createClient(
-      supabaseUrl,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    )
-  : null;
+// Only create admin client on the server
+export const createAdminClient = () => {
+  if (typeof window !== 'undefined') {
+    throw new Error('Admin client cannot be used in the browser');
+  }
+  
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    throw new Error('Service role key is required for admin operations');
+  }
 
-// Ensure supabaseAdmin is only used server-side
-if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'development') {
-  throw new Error('supabaseAdmin can only be used server-side');
-}
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+};

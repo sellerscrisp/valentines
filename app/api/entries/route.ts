@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseClient";
+import { createAdminClient } from "@/lib/supabaseClient";
 
 export async function GET() {
   const session = await auth();
@@ -9,17 +9,13 @@ export async function GET() {
   }
 
   try {
-    if (!supabaseAdmin) {
-      throw new Error("Supabase admin client not available");
-    }
-
+    const supabaseAdmin = createAdminClient();
     const { data, error } = await supabaseAdmin
       .from("scrapbook_entries")
       .select("*")
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-
     return NextResponse.json(data);
   } catch (error) {
     console.error('Fetch error:', error);
@@ -35,10 +31,7 @@ export async function PATCH(request: Request) {
 
   try {
     const { id, ...data } = await request.json() as { id: string; [key: string]: any };
-    
-    if (!supabaseAdmin) {
-      throw new Error("Supabase admin client not available");
-    }
+    const supabaseAdmin = createAdminClient();
 
     const { error } = await supabaseAdmin
       .from("scrapbook_entries")
@@ -46,7 +39,6 @@ export async function PATCH(request: Request) {
       .eq("id", id);
 
     if (error) throw error;
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Update error:', error);
