@@ -1,8 +1,19 @@
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
+import { Great_Vibes } from "next/font/google";
+import { Inter } from "next/font/google";
 
-const inter = Inter({ subsets: ["latin"] });
+const greatVibes = Great_Vibes({
+  weight: "400",
+  subsets: ["latin"],
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "Breaking: Putin Launches First Missile Strike",
@@ -49,6 +60,8 @@ export default function RootLayout({
             {children}
           </SessionProvider>
           <Toaster />
+          <div className={`${greatVibes.className}`}>
+          </div>
         </main>
       </body>
     </html>
