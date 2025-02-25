@@ -32,7 +32,10 @@ A social media platform built for two (or more).
 - In-app image editing
 - Stories and For You page (because every app needs this)
 - Storage optimization and image compression
-- Location auto-complete
+- Location auto-complete/combobox
+- Instagram-style zoom on images
+- Video support
+- Gif reactions
 
 ## Development
 

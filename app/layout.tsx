@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   title: "Breaking: Putin Launches First Missile Strike",
   description:
     "Russia Times Exclusive: In a stunning twist of events, President Putin has launched his first missile strike. Experts are baffled and the world watches in suspense. Read the full report for all the jaw-dropping details.",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
   openGraph: {
     title: "Breaking: Putin Launches First Missile Strike",
     description:
