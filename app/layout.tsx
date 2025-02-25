@@ -19,11 +19,6 @@ export const metadata: Metadata = {
   title: "Breaking: Putin Launches First Missile Strike",
   description:
     "Russia Times Exclusive: In a stunning twist of events, President Putin has launched his first missile strike. Experts are baffled and the world watches in suspense. Read the full report for all the jaw-dropping details.",
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
   openGraph: {
     title: "Breaking: Putin Launches First Missile Strike",
     description:
@@ -59,6 +54,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </head>
       <body className={`${inter.className} overflow-x-hidden bg-background`}>
         <main>
           <SessionProvider>
