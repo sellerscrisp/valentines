@@ -61,42 +61,38 @@ export async function GET(request: Request) {
  * POST handler to add a new comment.
  * This route requires authentication.
  */
-  export async function POST(request: Request) {
+export async function POST(request: Request) {
   const session = await auth();
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { entryId, content, parentId } = await request.json();
-
-    if (!content?.trim()) {
-      return NextResponse.json({ error: "Content is required" }, { status: 400 });
-    }
+    const body = await request.json() as { 
+      entryId: string;
+      content: string;
+      parentId?: string;
+    };
+    const { entryId, content, parentId } = body;
 
     const { data: comment, error } = await supabase
-      .from("comments")
+      .from('comments')
       .insert({
+        content,
         entry_id: entryId,
-        content: content.trim(),
         parent_id: parentId || null,
-        user_id: session.user.email,
-        user_name: session.user.name || session.user.email
+        user_id: session.user.id,
+        user_name: session.user.name || 'Anonymous',
+        user_email: session.user.email
       })
       .select()
       .single();
 
-    if (error) {
-      console.error("Insert comment error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) throw error;
 
     return NextResponse.json(comment);
   } catch (error) {
-    console.error("Comment POST error:", error);
-    return NextResponse.json(
-      { error: "Failed to create comment" }, 
-      { status: 500 }
-    );
+    console.error('Insert comment error:', error);
+    return NextResponse.json({ error: "Failed to add comment" }, { status: 500 });
   }
 } 

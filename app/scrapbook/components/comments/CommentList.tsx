@@ -8,43 +8,29 @@ import { useSession } from "next-auth/react";
 interface CommentListProps {
   comments: Comment[];
   deleteComment: (commentId: string) => Promise<void>;
-  addReply: (content: string, parentId: string) => Promise<void>;
-  addReaction: (commentId: string, reactionType: Reaction['reaction_type']) => Promise<void>;
-  removeReaction: (commentId: string, reactionType: Reaction['reaction_type']) => Promise<void>;
-  onReplyClick: (commentId: string | null, replyContent?: string) => void;
-  activeReplyId: string | null;
+  addReply: (content: string, parentId: string) => Promise<string>;
+  addReaction: (commentId: string, reactionType: Reaction["reaction_type"]) => Promise<void>;
+  removeReaction: (commentId: string, reactionType: Reaction["reaction_type"]) => Promise<void>;
+  onReply: (comment: Comment) => void;
+  focusedCommentId?: string;
 }
 
-export const CommentList: React.FC<CommentListProps> = ({
-  comments,
-  deleteComment,
-  addReply,
-  addReaction,
-  removeReaction,
-  onReplyClick,
-  activeReplyId,
-}) => {
+export function CommentList({ comments, focusedCommentId = undefined, ...props }: CommentListProps) {
   const { data: session } = useSession();
-  const currentUserId = session?.user?.id;
-
-  if (!currentUserId) return null;
+  const currentUserId = session?.user?.id || '';
 
   return (
     <div className="space-y-4">
       {comments.map((comment) => (
-        <div key={comment.id} className="pb-4">
-          <CommentItem
-            comment={comment}
-            deleteComment={deleteComment}
-            addReply={addReply}
-            addReaction={addReaction}
-            removeReaction={removeReaction}
-            currentUserId={currentUserId}
-            onReplyClick={onReplyClick}
-            activeReplyId={activeReplyId}
-          />
-        </div>
+        <CommentItem
+          key={comment.id}
+          comment={comment}
+          currentUserId={currentUserId}
+          isFocused={comment.id === focusedCommentId}
+          focusedCommentId={focusedCommentId}
+          {...props}
+        />
       ))}
     </div>
   );
-}; 
+} 

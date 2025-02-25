@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -15,10 +14,19 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
-import { entrySchema, EntryFormData } from "@/types/form";
 import { useSession } from "next-auth/react";
 import { ImagePreview } from "./components/ImagePreview";
 import { formatDateForForm } from "@/lib/date";
+// import { uploadToCloudflare } from "@/lib/cloudflareClient";
+
+interface FormValues {
+  title: string;
+  content: string;
+  entry_date: string;
+  location: string;
+  poster?: string;
+  image?: FileList;
+}
 
 type ImageData = {
   url: string;
@@ -33,8 +41,7 @@ export default function AddEntryPage() {
 
   const defaultPoster = session?.user?.email?.includes("sellers") ? "sellers" : "abby";
 
-  const form = useForm<EntryFormData>({
-    resolver: zodResolver(entrySchema),
+  const form = useForm<FormValues>({
     defaultValues: {
       title: "",
       content: "",
@@ -45,38 +52,34 @@ export default function AddEntryPage() {
     },
   });
 
-  const onSubmit = async (data: EntryFormData) => {
+  const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
+      if (!session?.user?.id) {
+        throw new Error('User not authenticated');
+      }
+
       let images: ImageData[] = [];
       
       if (data.image && data.image.length > 0) {
         // Upload all images in parallel
         const uploadPromises = Array.from(data.image as unknown as File[]).map(async (file, index) => {
-          const filePath = `entries/${Date.now()}-${index}-${file.name}`;
-          
-          const { error: uploadError } = await Promise.race([
-            supabase.storage
-              .from("scrapbook")
-              .upload(filePath, file, {
-                cacheControl: "3600",
-                upsert: false
-              }),
-            new Promise<{ error: Error }>((_,reject) => 
-              setTimeout(() => reject({ error: new Error("Upload timed out") }), 30000)
-            )
-          ]);
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('path', 'entries');
 
-          if (uploadError) {
-            throw new Error(`Upload Error: ${uploadError.message}`);
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error('Upload failed');
           }
 
-          const { data: urlData } = supabase.storage
-            .from("scrapbook")
-            .getPublicUrl(filePath);
-
+          const result = await response.json() as { url: string };
           return {
-            url: urlData.publicUrl,
+            url: result.url,
             order: index
           };
         });
@@ -97,6 +100,7 @@ export default function AddEntryPage() {
           location: data.location,
           poster: data.poster || 'anonymous',
           date_added: new Date().toISOString(),
+          user_id: session.user.id
         }])
         .select();
 
@@ -191,12 +195,12 @@ export default function AddEntryPage() {
               </label>
               <span className="text-muted-foreground text-sm">
                 {form.watch("image")?.length 
-                  ? `${form.watch("image").length} file(s) selected` 
+                  ? `${form.watch("image")?.length} file(s) selected` 
                   : "No file chosen"}
               </span>
             </div>
             <ImagePreview
-              files={form.watch("image")}
+              files={form.watch("image") || null}
               onRemove={(index: number) => {
                 const currentFiles = form.watch("image");
                 if (!currentFiles) return;

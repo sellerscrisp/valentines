@@ -8,6 +8,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { getSignedFileUrl } from '@/lib/cloudflareClient';
 
 interface EntryCardGalleryProps {
   images: { url: string; order: number; }[];
@@ -19,6 +20,7 @@ export function EntryCardGallery({ images, onImageLoad, onCurrentIndexChange }: 
   const [api, setApi] = React.useState<CarouselApi>();
   const [current, setCurrent] = React.useState(0);
   const [count, setCount] = React.useState(0);
+  const [signedUrls, setSignedUrls] = React.useState<{[key: string]: string}>({});
 
   React.useEffect(() => {
     if (!api) return;
@@ -30,6 +32,23 @@ export function EntryCardGallery({ images, onImageLoad, onCurrentIndexChange }: 
       onCurrentIndexChange?.(index);
     });
   }, [api, onCurrentIndexChange]);
+
+  React.useEffect(() => {
+    const fetchSignedUrls = async () => {
+      const urlMap: {[key: string]: string} = {};
+      for (const image of images) {
+        if (image.url.includes('r2.cloudflarestorage.com')) {
+          const path = image.url.split('.com/')[1];
+          urlMap[image.url] = await getSignedFileUrl(path);
+        } else {
+          urlMap[image.url] = image.url;
+        }
+      }
+      setSignedUrls(urlMap);
+    };
+    
+    fetchSignedUrls();
+  }, [images]);
 
   if (!images?.length) {
     return (
@@ -47,7 +66,7 @@ export function EntryCardGallery({ images, onImageLoad, onCurrentIndexChange }: 
             <CarouselItem key={index} className="aspect-[13/16] w-full">
               <div className="relative w-full h-full">
                 <Image
-                  src={image.url}
+                  src={signedUrls[image.url] || image.url}
                   alt={`Image ${index + 1}`}
                   fill
                   className="object-cover"

@@ -23,36 +23,63 @@ export async function GET(
 
 // POST handler: Create a reaction for a comment
 export async function POST(
-  req: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ commentId: string }> }
 ) {
-  const { commentId } = await params;
-
   const session = await auth();
-  if (!session?.user?.email) {
+  const { commentId } = await params;
+  
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { reactionType } = await req.json();
+    const body = await request.json() as { reactionType: string };
+    const reaction_type = body.reactionType;
 
-    const { data: reaction, error } = await supabase
-      .from("comment_reactions")
-      .insert({
-        comment_id: commentId,
-        user_id: session.user.email,
-        reaction_type: reactionType,
-      })
-      .select()
+    if (!reaction_type) {
+      return NextResponse.json({ error: "Reaction type is required" }, { status: 400 });
+    }
+
+    // Check for existing reaction of the same type
+    const { data: existingReaction, error: checkError } = await supabase
+      .from('comment_reactions')
+      .select('*')
+      .eq('comment_id', commentId)  // Use extracted ID
+      .eq('user_id', session.user.id)
+      .eq('reaction_type', reaction_type)
       .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (checkError && checkError.code !== 'PGRST116') {
+      throw checkError;
     }
-    return NextResponse.json(reaction);
-  } catch {
+
+    if (existingReaction) {
+      // If reaction already exists, remove it (toggle behavior)
+      const { error } = await supabase
+        .from('comment_reactions')
+        .delete()
+        .eq('id', existingReaction.id);
+
+      if (error) throw error;
+    } else {
+      // Add new reaction
+      const { error } = await supabase
+        .from('comment_reactions')
+        .insert({
+          comment_id: commentId,  // Use extracted ID
+          user_id: session.user.id,
+          reaction_type
+        });
+
+      if (error) throw error;
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error handling reaction:', error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Failed to handle reaction" },
       { status: 500 }
     );
   }
@@ -60,33 +87,38 @@ export async function POST(
 
 // DELETE handler: Remove a reaction from a comment
 export async function DELETE(
-  req: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ commentId: string }> }
 ) {
+  const session = await auth();
   const { commentId } = await params;
 
-  const session = await auth();
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { reactionType } = await req.json();
+    const { searchParams } = new URL(request.url);
+    const reactionType = searchParams.get('type');
+
+    if (!reactionType) {
+      return NextResponse.json({ error: "Reaction type is required" }, { status: 400 });
+    }
 
     const { error } = await supabase
-      .from("comment_reactions")
+      .from('comment_reactions')
       .delete()
-      .eq("comment_id", commentId)
-      .eq("user_id", session.user.email)
-      .eq("reaction_type", reactionType);
+      .eq('comment_id', commentId)  // Use extracted ID
+      .eq('user_id', session.user.id)
+      .eq('reaction_type', reactionType);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return new NextResponse(null, { status: 204 });
-  } catch {
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error removing reaction:', error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Failed to remove reaction" },
       { status: 500 }
     );
   }
@@ -104,7 +136,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { content } = await req.json();
+  const { content } = await req.json() as { content: string };
 
   // Verify ownership
   const { data: comment, error: fetchError } = await supabase

@@ -34,7 +34,7 @@ export default function ScrapbookPage() {
   return (
     <div className="relative min-h-screen bg-background">
       <ScrapbookNav onShowBook={() => setShowBookView(true)} />
-      <div className={`p-4 ${!isMobile ? 'mt-24' : ''}`}>
+      <div className={`${!isMobile ? 'mt-24' : ''}`}>
         <Gallery />
       </div>
       

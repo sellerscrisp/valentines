@@ -28,31 +28,38 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ commentId: string }> }
 ) {
-  const { commentId } = await params;
-  const session = await auth();
+  try {
+    const { commentId } = await params;
+    const session = await auth();
 
-  // Verify ownership
-  const { data: comment, error: fetchError } = await supabase
-    .from("comments")
-    .select("user_id")
-    .eq("id", commentId)
-    .single();
+    if (!session) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
 
-  if (fetchError) {
-    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    // First verify the user owns this comment
+    const { data: comment } = await supabase
+      .from('comments')
+      .select('user_id')
+      .eq('id', commentId)
+      .single();
+
+    if (!comment || comment.user_id !== session.user?.id) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    // Delete the comment
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (error) throw error;
+
+    return new NextResponse(null, { status: 200 });
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
-
-  if (comment?.user_id !== session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { error } = await supabase
-    .from("comments")
-    .delete()
-    .eq("id", commentId);
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true });
 }
 
 /**
@@ -64,7 +71,7 @@ export async function PATCH(
 ) {
   const { commentId } = await params;
   const session = await auth();
-  const { content } = await req.json();
+  const { content } = await req.json() as { content: string };
 
   // Verify ownership
   const { data: comment, error: fetchError } = await supabase

@@ -23,7 +23,7 @@ export function ReactionCounter({ reactions, onRemoveReaction }: ReactionCounter
     return acc;
   }, {} as Record<Reaction['reaction_type'], number>);
 
-  const userReactions = reactions.filter(r => r.user_id === session?.user?.email)
+  const userReactions = reactions.filter(r => r.user_id === session?.user?.id)
     .map(r => r.reaction_type);
 
   const totalReactions = reactions.length;
@@ -56,21 +56,26 @@ export function ReactionCounter({ reactions, onRemoveReaction }: ReactionCounter
       <PopoverContent className="w-fit p-2">
         <div className="flex flex-col gap-1">
           {(Object.entries(reactionCounts) as [Reaction['reaction_type'], number][]).map(([type, count]) => (
-            <div 
+            <button 
               key={type} 
               className={cn(
-                "flex items-center gap-2 text-xs px-2 py-1 rounded-md",
-                userReactions.includes(type) && "bg-primary/20 cursor-pointer"
+                "flex items-center gap-2 text-xs px-2 py-1 rounded-md bg-secondary hover:bg-secondary/50",
+                userReactions.includes(type) && "bg-primary/20"
               )}
               onClick={() => {
                 if (userReactions.includes(type) && onRemoveReaction) {
                   onRemoveReaction(type);
                 }
               }}
+              disabled={!userReactions.includes(type)}
             >
               <span>{type}</span>
               <span className="text-muted-foreground">{count}</span>
-            </div>
+              {userReactions.includes(type) && (
+                <span className="ml-auto text-xs text-muted-foreground"></span>
+                // <Trash2 className="w-2 h-2 text-muted-foreground"/>
+              )}
+            </button>
           ))}
         </div>
       </PopoverContent>

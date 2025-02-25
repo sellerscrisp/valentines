@@ -1,0 +1,7 @@
+name = "r2-worker"
+main = "scripts/worker.ts"
+compatibility_date = "2024-02-25"
+
+[[r2_buckets]]
+binding = "SCRAPBOOK"
+bucket_name = "scrapbook"

@@ -23,8 +23,8 @@ export function ScrapbookNav({ onShowBook }: ScrapbookNavProps) {
   }, []);
 
   return (
-    <nav className={`${isMobile ? 'fixed bottom-4' : 'fixed top-4'} left-4 right-4 z-10`}>
-      <div className="bg-card/25 backdrop-blur-lg rounded-xl p-4 shadow-lg border">
+    <nav className={`${isMobile ? 'fixed bottom-0' : 'fixed top-4'} left-4 right-4 z-50`}>
+      <div className="bg-card/25 backdrop-blur-lg rounded-t-xl p-4 shadow-lg border">
         <div className="grid grid-cols-[auto_1fr_1fr] gap-4">
           <Link href="/">
             <Button variant="outline" size="icon" className="rounded-xl h-10 w-10">

@@ -1,18 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { formatDateForForm } from "@/lib/date";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
-import { EditEntryDialogProps } from "@/types/entry";
-import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
-import { formatDateForForm } from "@/lib/date";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Pencil, Trash2, LoaderCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+// import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+
+interface EditEntryDialogProps {
+  entry: any;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+interface FormValues {
+  title: string;
+  content: string;
+  entry_date: string;
+  location: string;
+  image?: FileList;
+}
 
 export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogProps) {
   const { toast } = useToast();
@@ -20,80 +39,86 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
-  const form = useForm({
+  const form = useForm<FormValues>({
     defaultValues: {
       title: entry.title || "",
-      content: entry.content,
+      content: entry.content || "",
+      entry_date: entry.entry_date || "",
       location: entry.location || "",
-      entry_date: formatDateForForm(entry.entry_date),
+      image: undefined,
     },
   });
 
-  const handleSubmit = async (data: any) => {
+  console.log('Form state:', form.formState);
+
+  const handleSubmit = async (values: FormValues) => {
+    console.log('Form submitted with values:', values);
     setIsSubmitting(true);
     try {
       let images = [...(entry.images || [])];
 
-      if (data.image && data.image.length > 0) {
+      if (values.image && values.image.length > 0) {
+        console.log('New images to upload:', values.image);
         // Upload new images
-        const uploadPromises = Array.from(data.image as unknown as File[]).map(async (file, index) => {
-          const filePath = `entries/${Date.now()}-${index}-${file.name}`;
+        const uploadPromises = Array.from(values.image as unknown as File[]).map(async (file, index) => {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('path', 'entries');
 
-          const { error: uploadError } = await Promise.race([
-            supabase.storage
-              .from("scrapbook")
-              .upload(filePath, file, {
-                cacheControl: "3600",
-                upsert: false
-              }),
-            new Promise<{ error: Error }>((_, reject) =>
-              setTimeout(() => reject({ error: new Error("Upload timed out") }), 30000)
-            )
-          ]);
+          console.log('Uploading file:', file.name);
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
 
-          if (uploadError) throw uploadError;
+          if (!response.ok) {
+            console.error('Upload failed response:', response);
+            throw new Error('Upload failed');
+          }
 
-          const { data: urlData } = supabase.storage
-            .from("scrapbook")
-            .getPublicUrl(filePath);
-
+          const result = await response.json() as { url: string };
+          console.log('Upload success:', result);
           return {
-            url: urlData.publicUrl,
-            order: images.length + index // Add new images at the end
+            url: result.url,
+            order: images.length + index
           };
         });
 
         const newImages = await Promise.all(uploadPromises);
+        console.log('New images uploaded:', newImages);
         images = [...images, ...newImages];
       }
 
-      const { error: updateError } = await supabase
-        .from("scrapbook_entries")
-        .update({
-          title: data.title,
-          content: data.content,
-          entry_date: formatDateForForm(data.entry_date),
+      // Use the API endpoint instead of direct Supabase call
+      const response = await fetch('/api/entries', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: entry.id,
+          title: values.title,
+          content: values.content,
+          entry_date: formatDateForForm(values.entry_date),
           images,
-          location: data.location,
-        })
-        .eq("id", entry.id);
+          location: values.location,
+        }),
+      });
 
-      if (updateError) throw updateError;
+      if (!response.ok) {
+        const error = await response.json() as { message: string };
+        throw new Error(error.message || 'Failed to update entry');
+      }
 
       toast({
         title: "Success!",
-        description: (
-          <span>
-            <strong className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-transparent bg-clip-text">
-              {entry.title}
-            </strong> updated successfully
-          </span>
-        ),
+        description: "Entry updated successfully",
       });
 
       mutate("scrapbookEntries");
       onOpenChange(false);
     } catch (error) {
+      console.error('Submit error:', error);
       toast({
         variant: "destructive",
         title: "Error!",
@@ -107,15 +132,24 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      // Delete all images from storage
+      // Delete all images from Cloudflare R2
       if (entry.images?.length) {
-        const deletePromises = entry.images.map(async (image) => {
-          const imagePath = image.url.split('/').pop();
-          if (imagePath) {
-            const { error: storageError } = await supabase.storage
-              .from("scrapbook")
-              .remove([`entries/${imagePath}`]);
-            if (storageError) throw storageError;
+        const deletePromises = entry.images.map(async (image: any) => {
+          // Extract the path from the URL
+          const filePath = image.url.split(process.env.CLOUDFLARE_URL + '/').pop();
+          
+          if (filePath) {
+            try {
+              await fetch('/api/upload', {
+                method: 'DELETE',
+                body: JSON.stringify({ filePath }),
+                headers: {
+                  'Content-Type': 'application/json',
+                }
+              });
+            } catch (error) {
+              console.error(`Failed to delete image ${filePath}:`, error);
+            }
           }
         });
         await Promise.all(deletePromises);
@@ -155,85 +189,145 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="bg-background/70 backdrop-blur-lg border-none shadow-xl rounded-xl max-w-2xl mx-auto">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-primary">
-              Edit Memory
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Make changes to your memory here. Click save when you&apos;re done.
-            </DialogDescription>
+            <DialogTitle>Edit Entry</DialogTitle>
           </DialogHeader>
+          <Form {...form}>
+            <form 
+              onSubmit={(e) => {
+                console.log('Form submit event triggered');
+                form.handleSubmit(handleSubmit)(e);
+              }} 
+              className="space-y-6"
+            >
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="A memorable moment" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <div className="space-y-4">
-              <div className="grid gap-2">
-                <Label className="text-foreground">Title</Label>
-                <Input
-                  {...form.register("title")}
-                  className="bg-white/50 border-input text-foreground placeholder:text-muted-foreground"
-                />
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Memory</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Tell your story..." />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="City, Country" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="entry_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date</FormLabel>
+                    <FormControl>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-left">
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? format(new Date(field.value), "PPP") : "Choose a date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date) => field.onChange(date?.toISOString() || "")}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-between pt-3">
+                <div className="flex space-x-2">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setShowDeleteConfirmation(true)}
+                  >
+                    <Trash2 className="mr-1 h-4 w-4" />
+                    Delete
+                  </Button>
+                  <Button type="button" variant="destructive" onClick={() => onOpenChange(false)}>
+                    Cancel
+                  </Button>
+                </div>
+                <Button type="submit" disabled={isSubmitting} variant="secondary">
+                  {isSubmitting ? (
+                    <>
+                      <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Pencil className="mr-1 h-3 w-3" />
+                      Save
+                    </>
+                  )}
+                </Button>
               </div>
-
-              <div className="grid gap-2">
-                <Label className="text-foreground">Date</Label>
-                <Input
-                  type="date"
-                  {...form.register("entry_date", {
-                    required: "Date is required",
-                    validate: (value) => {
-                      const date = new Date(value);
-                      return !isNaN(date.getTime()) || "Invalid date";
-                    }
-                  })}
-                  className="bg-white/50 border-input text-foreground"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label className="text-foreground">Content</Label>
-                <Textarea
-                  {...form.register("content")}
-                  className="bg-white/50 border-input text-foreground min-h-[100px] placeholder:text-muted-foreground"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label className="text-foreground">Location</Label>
-                <Input
-                  {...form.register("location")}
-                  className="bg-white/50 border-input text-foreground placeholder:text-muted-foreground"
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="flex gap-2 sm:gap-0">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setShowDeleteConfirmation(true)}
-                className="bg-destructive/10 text-destructive hover:bg-destructive/20"
-              >
-                Delete Entry
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                {isSubmitting ? "Saving..." : "Save changes"}
-              </Button>
-            </DialogFooter>
-          </form>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirmationDialog
-        open={showDeleteConfirmation}
-        onOpenChange={setShowDeleteConfirmation}
-        onConfirm={handleDelete}
-        isDeleting={isDeleting}
-      />
+      <AlertDialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete &quot;{entry.title}&quot; and all associated images.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 } 

@@ -17,13 +17,7 @@ interface CommentSectionProps {
 
 export function CommentSection({ entryId }: CommentSectionProps) {
   const { comments, isLoading, error, addComment, deleteComment, addReply, addReaction, removeReaction } = useComments(entryId);
-  const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState("");
-
-  const handleReplyClick = (commentId: string | null, initialContent: string = "") => {
-    setActiveReplyId(commentId);
-    setReplyContent(initialContent);
-  };
+  const [focusedCommentId, setFocusedCommentId] = useState<string | undefined>();
 
   if (isLoading) return <div className="animate-pulse">Loading comments...</div>;
   if (error) return <div className="text-destructive">Error loading comments</div>;
@@ -39,7 +33,7 @@ export function CommentSection({ entryId }: CommentSectionProps) {
             <CommentInput 
               entryId={entryId}
               addComment={addComment}
-              initialContent={replyContent}
+              onCancelReply={() => {}}
             />
             <CommentList 
               comments={comments}
@@ -47,8 +41,8 @@ export function CommentSection({ entryId }: CommentSectionProps) {
               addReply={addReply}
               addReaction={addReaction}
               removeReaction={removeReaction}
-              onReplyClick={handleReplyClick}
-              activeReplyId={activeReplyId}
+              onReply={(comment) => setFocusedCommentId(comment.id)}
+              focusedCommentId={focusedCommentId}
             />
           </div>
         </AccordionContent>

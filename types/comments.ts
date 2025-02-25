@@ -18,4 +18,6 @@ export interface Comment {
   is_edited: boolean;
   reactions?: Reaction[];
   replies?: Comment[];
+  user_email: string;
+  level?: number;
 } 

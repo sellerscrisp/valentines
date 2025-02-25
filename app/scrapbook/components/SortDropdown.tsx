@@ -1,58 +1,63 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown, ChevronUp, CalendarDays, CalendarClock, Users } from "lucide-react";
-import type { SortOption, SortDropdownProps } from "@/types/sort";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ChevronDown, CalendarDays, CalendarClock, Users } from "lucide-react";
+
+type SortOption = "dateAdded" | "entryDate" | "poster";
+
+interface SortDropdownProps {
+  sortOption: SortOption;
+  onSortChange: (option: SortOption) => void;
+}
 
 export default function SortDropdown({ sortOption, onSortChange }: SortDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const sortOptions: { value: SortOption; label: string; icon: React.ReactNode }[] = [
-    { value: "dateAdded", label: "Date Added", icon: <CalendarDays className="mr-2 h-4 w-4" /> },
-    { value: "entryDate", label: "Entry Date", icon: <CalendarClock className="mr-2 h-4 w-4" /> },
-    { value: "poster", label: "Poster", icon: <Users className="mr-2 h-4 w-4" /> },
+  const sortOptions = [
+    { value: "dateAdded", label: "Date Added", icon: CalendarDays },
+    { value: "entryDate", label: "Entry Date", icon: CalendarClock },
+    { value: "poster", label: "Poster", icon: Users },
   ];
 
-  const handleSort = (option: SortOption) => {
-    onSortChange(option);
-    setIsOpen(false);
-    console.log(`Sorting by: ${option}`);
-  };
+  const currentOption = sortOptions.find(option => option.value === sortOption);
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="default" className="w-[200px] justify-between">
-          <span className="flex items-center">
-            {sortOptions.find((opt) => opt.value === sortOption)?.icon}
-            {sortOptions.find((opt) => opt.value === sortOption)?.label}
-          </span>
-          {isOpen ? (
-            <ChevronUp className="ml-2 h-4 w-4" />
-          ) : (
-            <ChevronDown className="ml-2 h-4 w-4" />
-          )}
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button 
+          variant="outline" 
+          className="w-[180px] justify-between bg-white"
+        >
+          <div className="flex items-center gap-2">
+            {currentOption && <currentOption.icon className="h-4 w-4" />}
+            <span>{currentOption?.label || "Sort by"}</span>
+          </div>
+          <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-[200px]">
-        {sortOptions.map((option) => (
-          <DropdownMenuItem 
-            key={option.value} 
-            onSelect={() => handleSort(option.value)} 
-            className="flex items-center"
-          >
-            {option.icon}
-            {option.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-[180px] p-0" 
+        align="end"
+      >
+        <div className="flex flex-col">
+          {sortOptions.map((option) => (
+            <Button
+              key={option.value}
+              variant="ghost"
+              className={`justify-start gap-2 rounded-none ${
+                option.value === sortOption ? "bg-accent/50" : ""
+              }`}
+              onClick={() => onSortChange(option.value as SortOption)}
+            >
+              <option.icon className="h-4 w-4" />
+              {option.label}
+            </Button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

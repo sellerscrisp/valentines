@@ -1,6 +1,7 @@
 import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { Comment, Reaction } from "@/types/comments";
+import { supabase } from "@/lib/supabaseClient";
 
 export async function fetchComments(entryId: string): Promise<Comment[]> {
   const res = await fetch(`/api/comments?entryId=${entryId}`);
@@ -15,32 +16,51 @@ export function useComments(entryId: string) {
     () => fetchComments(entryId)
   );
 
-  const addComment = async (content: string, parentId?: string) => {
+  const addComment = async (content: string, parentId?: string, level: number = 0): Promise<string> => {
     if (!session) throw new Error("Must be logged in to comment");
 
     const res = await fetch(`/api/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entryId, content, parentId }),
+      body: JSON.stringify({ entryId, content, parentId, level }),
     });
 
     if (!res.ok) throw new Error("Failed to add comment");
-
+    const data = await res.json() as { id: string };
     mutate();
+    return data.id;
   };
 
   const deleteComment = async (commentId: string) => {
-    const res = await fetch(`/api/comments/${commentId}`, {
-      method: "DELETE",
-    });
+    try {
+      const res = await fetch(`/api/comments/${commentId}`, {
+        method: "DELETE",
+        credentials: 'include',
+      });
 
-    if (!res.ok) throw new Error("Failed to delete comment");
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error("Unauthorized to delete this comment");
+        }
+        throw new Error("Failed to delete comment");
+      }
 
-    mutate();
+      mutate();
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      throw error;
+    }
   };
 
-  const addReply = async (content: string, parentId: string) => {
-    await addComment(content, parentId);
+  const addReply = async (content: string, parentId: string): Promise<string> => {
+    const { data: comment } = await supabase
+      .from('comments')
+      .select('parent_id')
+      .eq('id', parentId)
+      .single();
+
+    const actualParentId = comment?.parent_id || parentId;
+    return addComment(content, actualParentId);
   };
 
   const addReaction = async (commentId: string, reactionType: Reaction['reaction_type']) => {
@@ -56,15 +76,23 @@ export function useComments(entryId: string) {
     mutate();
   };
 
-  const removeReaction = async (commentId: string, reactionType: Reaction['reaction_type']) => {
-    const res = await fetch(`/api/comments/${commentId}/reactions`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reactionType }),
-    });
+  const removeReaction = async (commentId: string, reactionType: string) => {
+    try {
+      const response = await fetch(
+        `/api/comments/${commentId}/reactions?type=${encodeURIComponent(reactionType)}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
-    if (!res.ok) throw new Error("Failed to remove reaction");
-    mutate();
+      if (!response.ok) throw new Error('Failed to remove reaction');
+      
+      // Update local state
+      mutate();
+    } catch (error) {
+      console.error('Error removing reaction:', error);
+      throw error;
+    }
   };
 
   return {

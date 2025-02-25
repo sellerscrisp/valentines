@@ -51,16 +51,16 @@ export const EmojiReactionPicker: React.FC<EmojiReactionPickerProps> = ({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="link" className="h-auto p-0 text-xs font-normal text-muted-foreground active:text-slate-300">
-          Like
-        </Button>
+        <a className="p-0 text-xs font-normal text-muted-foreground focus:text-slate-300">
+          React
+        </a>
       </PopoverTrigger>
-      <PopoverContent 
+      <PopoverContent
         className="w-[280px] p-3 backdrop-blur-xl bg-slate-600/50 border-none shadow-xl"
         sideOffset={5}
         align="start"
       >
-        <div 
+        <div
           ref={containerRef}
           className="overflow-hidden"
           onPointerDown={(e) => dragControls.start(e)}
@@ -73,7 +73,7 @@ export const EmojiReactionPicker: React.FC<EmojiReactionPickerProps> = ({
               right: 0,
               left: -((REACTIONS.length * 42) - 280)
             }}
-            dragElastic={0.1}
+            dragElastic={1.1}
             dragMomentum={false}
             style={{ x }}
             onDragEnd={handleDragEnd}
@@ -83,7 +83,7 @@ export const EmojiReactionPicker: React.FC<EmojiReactionPickerProps> = ({
               <Button
                 key={reaction.label}
                 variant="ghost"
-                className="h-8 w-3 rounded-full hover:bg-muted group relative flex-shrink-0"
+                className="h-8 w-3 rounded-full hover:bg-muted/0 group relative flex-shrink-0"
                 onClick={() => {
                   onReactionSelect(reaction.emoji as Reaction['reaction_type']);
                   setOpen(false);

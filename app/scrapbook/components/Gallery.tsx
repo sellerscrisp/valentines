@@ -8,18 +8,8 @@ import { SkeletonCard } from "./SkeletonCard";
 import SortDropdown from "./SortDropdown";
 import { SortOption } from "@/types/sort";
 import { formatDateForForm } from "@/lib/date";
-
-interface Entry {
-  id: string;
-  title?: string;
-  content: string;
-  entry_date: string;
-  date_added: string;
-  images?: { url: string; order: number }[];
-  location?: string;
-  poster: string;
-}
-
+import { Entry } from "@/types/entry";
+import SmoothReveal from "@/components/animations/smooth-reveal";
 // Fetcher function to get entries from Supabase.
 const fetchEntries = async () => {
   const { data, error } = await supabase
@@ -37,7 +27,7 @@ export default function Gallery() {
   if (error) return <p>Error loading entries: {error.message}</p>;
   if (!data) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="flex flex-col gap-4 px-4 md:px-0">
         {Array.from({ length: 6 }).map((_, idx) => (
           <SkeletonCard key={idx} />
         ))}
@@ -56,8 +46,8 @@ export default function Gallery() {
     );
   } else if (sortOption === "entryDate") {
     sortedEntries.sort(
-      (a, b) => 
-        new Date(formatDateForForm(b.entry_date)).getTime() - 
+      (a, b) =>
+        new Date(formatDateForForm(b.entry_date)).getTime() -
         new Date(formatDateForForm(a.entry_date)).getTime()
     );
   } else if (sortOption === "poster") {
@@ -65,13 +55,15 @@ export default function Gallery() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <SortDropdown sortOption={sortOption} onSortChange={setSortOption} />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="flex flex-col gap-4 w-9/10 mx-auto">
+      <div className="flex flex-col gap-4">
+        <div className="relative z-1 pt-6">
+          <SortDropdown sortOption={sortOption} onSortChange={setSortOption} />
+        </div>
         {sortedEntries.map((entry) => (
-          <EntryCard key={entry.id} entry={entry} />
+          <SmoothReveal key={entry.id}>
+            <EntryCard entry={entry} />
+          </SmoothReveal>
         ))}
       </div>
     </div>
