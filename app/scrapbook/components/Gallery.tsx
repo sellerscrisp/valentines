@@ -3,7 +3,6 @@
 import { useState } from "react";
 import useSWR from "swr";
 import EntryCard from "./EntryCard";
-import { supabase } from "@/lib/supabaseClient";
 import { SkeletonCard } from "./SkeletonCard";
 import SortDropdown from "./SortDropdown";
 import { SortOption } from "@/types/sort";
