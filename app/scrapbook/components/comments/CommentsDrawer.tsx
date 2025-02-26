@@ -93,9 +93,8 @@ function CommentsContent({
     <>
       <div 
         data-drawer-content
-        className={`p-4 overflow-y-auto flex-1 ${className}`}
+        className={`p-4 overflow-y-auto h-[calc(100%-140px)] ${className}`}
         onClick={handleBackdropClick}
-        style={{ height: 'calc(100% - 140px)' }}
       >
         {isLoading && (
           <div className="animate-pulse text-center">Loading comments...</div>
@@ -215,7 +214,7 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
         <DialogTrigger asChild>
           {trigger}
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] flex flex-col bg-gray-100">
+        <DialogContent className="sm:max-w-[425px] h-[80vh] flex flex-col overflow-hidden">
           <DialogHeader>
             <DialogTitle>
               {comments.length} {comments.length === 1 ? "comment" : "comments"}
@@ -251,7 +250,7 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
       <DrawerTrigger asChild>
         {trigger}
       </DrawerTrigger>
-      <DrawerContent className="bg-gray-100" style={{ height: '80vh', transform: 'none !important' }}>
+      <DrawerContent className="bg-gray-100 h-[80vh] flex flex-col overflow-hidden">
         <DrawerHeader className="bg-gray-100 border-b">
           <DrawerTitle>
             {comments.length} {comments.length === 1 ? "comment" : "comments"}
@@ -260,7 +259,7 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
             {comments.length === 0 ? "be the first to comment!" : "be nice!"}
           </DrawerDescription>
         </DrawerHeader>
-        <div className="flex flex-col h-full relative">
+        <div className="flex-1 overflow-hidden">
           <CommentsContent
             comments={comments}
             isLoading={isLoading}
@@ -277,7 +276,7 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
             addReply={addReply}
             addReaction={addReaction}
             removeReaction={removeReaction}
-            className="px-4"
+            className="h-full"
           />
         </div>
       </DrawerContent>
