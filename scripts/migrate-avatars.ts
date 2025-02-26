@@ -36,7 +36,7 @@ async function migrateAvatars() {
 
     if (error) throw error;
 
-    console.log(`Found ${avatars.length} avatars to migrate`);
+    // console.log(`Found ${avatars.length} avatars to migrate`);
 
     // Get all users to update their avatar URLs
     const { data: users, error: usersError } = await supabase
@@ -90,13 +90,13 @@ async function migrateAvatars() {
           console.error(`Error updating user ${userId} avatar:`, updateError);
           continue;
         }
-        console.log(`Updated avatar URL for user ${userId}`);
+        //console.log(`Updated avatar URL for user ${userId}`);
       }
 
-      console.log(`Migrated avatar: ${avatar.name}`);
+      // console.log(`Migrated avatar: ${avatar.name}`);
     }
 
-    console.log('Avatar migration completed successfully');
+    // console.log('Avatar migration completed successfully');
   } catch (error) {
     console.error('Avatar migration failed:', error);
   }

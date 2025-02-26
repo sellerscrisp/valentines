@@ -26,9 +26,23 @@ const updateNestedComment = (comments: Comment[], parentId: string, newReply: Co
 const fetchComments = async (url: string): Promise<Comment[]> => {
   const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch comments');
-  const data = await res.json();
-  console.log('Fetched comments:', data);
-  return data as Comment[];
+  const data = (await res.json()) as Array<{
+    comment_reactions: Reaction[];
+    replies?: Array<{ comment_reactions: Reaction[] }>;
+    [key: string]: any;
+  }>;
+  
+  const transformedData = data.map(comment => ({
+    ...comment,
+    reactions: comment.comment_reactions || [],
+    replies: (comment.replies || []).map(reply => ({
+      ...reply,
+      reactions: reply.comment_reactions || []
+    }))
+  }));
+
+  // console.log('Transformed comments:', transformedData);
+  return transformedData as unknown as Comment[];
 };
 
 export function useComments(entryId: string) {
@@ -66,7 +80,7 @@ export function useComments(entryId: string) {
     }
 
     const newReply = await response.json() as Comment;
-    console.log('New reply:', newReply);
+    // console.log('New reply:', newReply);
 
     // Force a revalidation instead of optimistic update
     await mutate();
@@ -75,87 +89,87 @@ export function useComments(entryId: string) {
   };
 
   const addReaction = async (commentId: string, reactionType: Reaction["reaction_type"]): Promise<void> => {
-    await fetch('/api/comments/reaction', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ commentId, reactionType }),
-    });
-    
-    // Optimistically update reactions
-    const updatedComments = comments.map(comment => {
-      if (comment.id === commentId) {
-        return {
-          ...comment,
-          reactions: [...(comment.reactions || []), {
-            id: 'temp',
-            comment_id: commentId,
-            user_id: session?.user?.id || '',
-            reaction_type: reactionType,
-            created_at: new Date().toISOString()
-          }]
-        };
+    if (!session?.user?.id) return;
+
+    try {
+      const response = await fetch('/api/comments/reaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentId, reactionType }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add reaction');
       }
-      if (comment.replies?.length) {
-        return {
-          ...comment,
-          replies: comment.replies.map(reply => 
-            reply.id === commentId 
-              ? {
-                  ...reply,
-                  reactions: [...(reply.reactions || []), {
-                    id: 'temp',
-                    comment_id: commentId,
-                    user_id: session?.user?.id || '',
-                    reaction_type: reactionType,
-                    created_at: new Date().toISOString()
-                  }]
-                }
-              : reply
-          )
-        };
-      }
-      return comment;
-    });
-    
-    await mutate(updatedComments, false);
+
+      // Transform the current comments to include the new reaction
+      const updatedComments = comments.map(comment => {
+        if (comment.id === commentId) {
+          return {
+            ...comment,
+            reactions: [...(comment.reactions || []), {
+              id: 'temp', // Will be replaced on next fetch
+              comment_id: commentId,
+              user_id: session?.user?.id,
+              reaction_type: reactionType,
+              created_at: new Date().toISOString()
+            }]
+          };
+        }
+        if (comment.replies?.length) {
+          return {
+            ...comment,
+            replies: comment.replies.map(reply =>
+              reply.id === commentId
+                ? {
+                    ...reply,
+                    reactions: [...(reply.reactions || []), {
+                      id: 'temp',
+                      comment_id: commentId,
+                      user_id: session?.user?.id,
+                      reaction_type: reactionType,
+                      created_at: new Date().toISOString()
+                    }]
+                  }
+                : reply
+            )
+          };
+        }
+        return comment;
+      });
+
+      // Update optimistically
+      await mutate(updatedComments as Comment[], false);
+      // Then revalidate to get the real data
+      await mutate();
+
+    } catch (error) {
+      console.error('Error adding reaction:', error);
+      throw error;
+    }
   };
 
   const removeReaction = async (commentId: string, reactionType: Reaction["reaction_type"]): Promise<void> => {
-    await fetch('/api/comments/reaction', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ commentId, reactionType }),
-    });
-    
-    // Optimistically update reactions
-    const updatedComments = comments.map(comment => {
-      if (comment.id === commentId) {
-        return {
-          ...comment,
-          reactions: (comment.reactions || []).filter(r => 
-            !(r.user_id === session?.user?.id && r.reaction_type === reactionType)
-          )
-        };
+    if (!session?.user?.id) return;
+
+    try {
+      const response = await fetch('/api/comments/reaction', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentId, reactionType }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove reaction');
       }
-      if (comment.replies?.length) {
-        return {
-          ...comment,
-          replies: comment.replies.map(reply =>
-            reply.id === commentId
-              ? {
-                  ...reply,
-                  reactions: (reply.reactions || []).filter(r => 
-                    !(r.user_id === session?.user?.id && r.reaction_type === reactionType)
-                  )
-                }
-              : reply
-          )
-        };
-      }
-      return comment;
-    });
-    
-    await mutate(updatedComments, false);
+
+      // Force a revalidation to get fresh data from the server
+      await mutate();
+
+    } catch (error) {
+      console.error('Error removing reaction:', error);
+      throw error;
+    }
   };
 
   return {

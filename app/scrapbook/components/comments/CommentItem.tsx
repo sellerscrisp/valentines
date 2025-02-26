@@ -67,18 +67,13 @@ export function CommentItem({
   const handleDelete = async () => {
     try {
       setShowDeleteDialog(false);
-      // Wait for dialog to close
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
       setIsDeleting(true);
-      // Wait for delete animation
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
+
+      // Delete immediately
       await deleteComment(comment.id);
-      toast({
-        title: "Comment deleted",
-        description: "Your comment has been successfully deleted.",
-      });
+
+      // Very short delay for poof animation
+      await new Promise(resolve => setTimeout(resolve, 900));
     } catch {
       setIsDeleting(false);
       toast({
@@ -91,12 +86,11 @@ export function CommentItem({
 
   return (
     <AnimatedComment isDeleting={isDeleting} isNew={isNew}>
-      <div 
+      <div
         ref={commentRef}
         data-comment-item
-        className={`group relative p-1.5 transition-all duration-300 ${
-          shouldBlur ? 'opacity-30 blur-[1px] pointer-events-none' : ''
-        } ${isFocused ? 'scale-[1.02] z-10' : ''}`}
+        className={`group relative p-1.5 transition-all duration-300 ${shouldBlur ? 'opacity-30 blur-[1px] pointer-events-none' : ''
+          } ${isFocused ? 'scale-[1.02] z-10' : ''}`}
       >
         <div className="flex gap-1.5">
           <div className="flex-shrink-0">
@@ -119,9 +113,11 @@ export function CommentItem({
             </div>
 
             <div className="flex items-center gap-0.5 text-xs text-muted-foreground mt-0.5">
-              <EmojiReactionPicker onReactionSelect={(type) => addReaction(comment.id, type)}>
-                {null}
-              </EmojiReactionPicker>
+              <div className="px-1">
+                <EmojiReactionPicker onReactionSelect={(type) => addReaction(comment.id, type)}>
+                  {null}
+                </EmojiReactionPicker>
+              </div>
               <button
                 onClick={() => onReply(comment)}
                 disabled={!isInteractive}

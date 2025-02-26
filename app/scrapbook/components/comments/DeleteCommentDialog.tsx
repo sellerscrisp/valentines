@@ -24,7 +24,7 @@ export function DeleteCommentDialog({
 }: DeleteCommentDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="bg-black/20 backdrop-blur-lg border-none rounded-xl shadow-xl">
+      <AlertDialogContent className="bg-primary/20 backdrop-blur-lg rounded-xl shadow-xl border-primary/60">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-2xl font-bold text-white">
             Delete comment?
@@ -34,13 +34,13 @@ export function DeleteCommentDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex gap-2 sm:gap-0">
-          <AlertDialogCancel className="bg-white/10 text-white hover:bg-white/20 border-none mr-2">
+          <AlertDialogCancel className="bg-white/10 text-white hover:bg-white/20 border-none md:mr-2">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isDeleting}
-            className="bg-red-500/20 text-white hover:bg-red-500/40 transition-all duration-300"
+            className="bg-destructive/50 text-white hover:bg-red-500/40 transition-all duration-300"
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </AlertDialogAction>

@@ -74,12 +74,18 @@ function CommentsContent({
   useEffect(() => {
     if (replyingTo && commentInputRef.current) {
       setTimeout(() => {
+        commentInputRef.current?.focus();
         const replyElement = document.querySelector(`[data-comment-id="${replyingTo.id}"]`);
         if (replyElement) {
-          replyElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const drawer = document.querySelector('[data-drawer-content]');
+          if (drawer) {
+            const drawerRect = drawer.getBoundingClientRect();
+            const replyRect = replyElement.getBoundingClientRect();
+            const offset = replyRect.top - drawerRect.top - 100;
+            drawer.scrollTop = offset;
+          }
         }
-        commentInputRef.current?.focus();
-      }, 100);
+      }, 300);
     }
   }, [replyingTo]);
 
@@ -87,8 +93,9 @@ function CommentsContent({
     <>
       <div 
         data-drawer-content
-        className={`p-4 overflow-y-auto h-[calc(100vh-180px)] ${className}`}
+        className={`p-4 overflow-y-auto flex-1 ${className}`}
         onClick={handleBackdropClick}
+        style={{ height: 'calc(100% - 140px)' }}
       >
         {isLoading && (
           <div className="animate-pulse text-center">Loading comments...</div>
@@ -108,7 +115,7 @@ function CommentsContent({
           />
         )}
       </div>
-      <div className="border-t p-4 bg-background sticky bottom-0">
+      <div className="border-t p-4 bg-background w-full" style={{ position: 'fixed', bottom: 0, left: 0, right: 0 }}>
         {replyingTo && (
           <div className="p-2 bg-secondary rounded-t-lg flex items-center justify-between">
             <span className="text-sm text-secondary-foreground">
@@ -208,7 +215,7 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
         <DialogTrigger asChild>
           {trigger}
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] max-h-[80vh] flex flex-col bg-gray-100">
+        <DialogContent className="sm:max-w-[425px] flex flex-col bg-gray-100">
           <DialogHeader>
             <DialogTitle>
               {comments.length} {comments.length === 1 ? "comment" : "comments"}
@@ -244,8 +251,8 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
       <DrawerTrigger asChild>
         {trigger}
       </DrawerTrigger>
-      <DrawerContent className="bg-gray-100 h-[85vh]">
-        <DrawerHeader className="sticky top-0 bg-gray-100 z-10">
+      <DrawerContent className="bg-gray-100" style={{ height: '80vh', transform: 'none !important' }}>
+        <DrawerHeader className="bg-gray-100 border-b">
           <DrawerTitle>
             {comments.length} {comments.length === 1 ? "comment" : "comments"}
           </DrawerTitle>
@@ -253,24 +260,26 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
             {comments.length === 0 ? "be the first to comment!" : "be nice!"}
           </DrawerDescription>
         </DrawerHeader>
-        <CommentsContent
-          comments={comments}
-          isLoading={isLoading}
-          error={error}
-          replyingTo={replyingTo}
-          commentInputRef={commentInputRef}
-          handleComment={handleComment}
-          handleReply={handleReply}
-          cancelReply={cancelReply}
-          handleBackdropClick={handleBackdropClick}
-          onClose={handleClose}
-          entryId={entryId}
-          deleteComment={deleteComment}
-          addReply={addReply}
-          addReaction={addReaction}
-          removeReaction={removeReaction}
-          className="px-4"
-        />
+        <div className="flex flex-col h-full relative">
+          <CommentsContent
+            comments={comments}
+            isLoading={isLoading}
+            error={error}
+            replyingTo={replyingTo}
+            commentInputRef={commentInputRef}
+            handleComment={handleComment}
+            handleReply={handleReply}
+            cancelReply={cancelReply}
+            handleBackdropClick={handleBackdropClick}
+            onClose={handleClose}
+            entryId={entryId}
+            deleteComment={deleteComment}
+            addReply={addReply}
+            addReaction={addReaction}
+            removeReaction={removeReaction}
+            className="px-4"
+          />
+        </div>
       </DrawerContent>
     </Drawer>
   );

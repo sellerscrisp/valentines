@@ -52,20 +52,20 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
   console.log('Form state:', form.formState);
 
   const handleSubmit = async (values: FormValues) => {
-    console.log('Form submitted with values:', values);
+    // console.log('Form submitted with values:', values);
     setIsSubmitting(true);
     try {
       let images = [...(entry.images || [])];
 
       if (values.image && values.image.length > 0) {
-        console.log('New images to upload:', values.image);
+        // console.log('New images to upload:', values.image);
         // Upload new images
         const uploadPromises = Array.from(values.image as unknown as File[]).map(async (file, index) => {
           const formData = new FormData();
           formData.append('file', file);
           formData.append('path', 'entries');
 
-          console.log('Uploading file:', file.name);
+          // console.log('Uploading file:', file.name);
           const response = await fetch('/api/upload', {
             method: 'POST',
             body: formData,
@@ -77,7 +77,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
           }
 
           const result = await response.json() as { url: string };
-          console.log('Upload success:', result);
+          // console.log('Upload success:', result);
           return {
             url: result.url,
             order: images.length + index
@@ -85,7 +85,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
         });
 
         const newImages = await Promise.all(uploadPromises);
-        console.log('New images uploaded:', newImages);
+        // console.log('New images uploaded:', newImages);
         images = [...images, ...newImages];
       }
 
@@ -199,7 +199,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
           <Form {...form}>
             <form 
               onSubmit={(e) => {
-                console.log('Form submit event triggered');
+                // console.log('Form submit event triggered');
                 form.handleSubmit(handleSubmit)(e);
               }} 
               className="space-y-6"
