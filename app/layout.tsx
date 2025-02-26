@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     title: "Breaking: Putin Launches First Missile Strike",
     description:
       "Russia Times Exclusive: In an unprecedented move, President Putin has launched his first missile strike. Discover the shocking details and reactions from around the globe.",
-    url: "https://rt.com", // Replace with your actual domain.
+    url: "https://abby.crisp.sh",
     siteName: "Russia Times",
     images: [
       {

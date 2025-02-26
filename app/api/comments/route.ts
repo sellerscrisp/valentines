@@ -25,17 +25,22 @@ export async function GET(request: Request) {
       .from('comments')
       .select(`
         *,
-        reactions (*),
+        comment_reactions (*),
         replies:comments (
           *,
-          reactions (*)
+          comment_reactions (*)
         )
       `)
       .eq('entry_id', entryId)
       .is('parent_id', null)
       .order('created_at', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
+
+    console.log('Fetched comments data:', data);
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching comments:', error);
@@ -57,20 +62,36 @@ export async function POST(request: Request) {
     const { entryId, content } = await request.json() as { entryId: string; content: string };
     const supabaseAdmin = createAdminClient();
 
-    const { data, error } = await supabaseAdmin
+    const { data: newComment, error: insertError } = await supabaseAdmin
       .from('comments')
       .insert({
         entry_id: entryId,
         content,
         user_id: session.user.id,
         user_name: session.user.name || 'Anonymous',
-        user_email: session.user.email
+        user_email: session.user.email,
+        parent_id: null // Ensure this is explicitly set for top-level comments
       })
-      .select()
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        user_name,
+        user_email,
+        entry_id,
+        parent_id
+      `)
       .single();
 
-    if (error) throw error;
-    return NextResponse.json(data);
+    if (insertError) throw insertError;
+
+    // Return the comment with empty arrays for reactions and replies
+    return NextResponse.json({
+      ...newComment,
+      reactions: [],
+      replies: []
+    });
   } catch (error) {
     console.error('Error adding comment:', error);
     return NextResponse.json({ error: "Failed to add comment" }, { status: 500 });

@@ -68,7 +68,7 @@ export const CommentInput = forwardRef<HTMLTextAreaElement, CommentInputProps>(
             />
             <Button
               size="icon"
-              className="h-7 w-7 absolute right-1.5 bottom-1.5 border-secondary/60 bg-secondary/60"
+              className="h-7 w-7 absolute right-1.5 bottom-1.5 border-primary bg-secondary/60 shadow-none hover:bg-secondary/80"
               onClick={handleSubmit}
               disabled={!content.trim() || isSubmitting}
             >

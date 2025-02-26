@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { formatDateForForm } from "@/lib/date";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabaseClient";
+// import { supabase } from "@/lib/supabaseClient";
 import { mutate } from "swr";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Pencil, Trash2, LoaderCircle } from "lucide-react";
@@ -155,12 +155,15 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
         await Promise.all(deletePromises);
       }
 
-      const { error: dbError } = await supabase
-        .from("scrapbook_entries")
-        .delete()
-        .eq("id", entry.id);
+      // Use the API endpoint instead of direct Supabase call
+      const response = await fetch(`/api/entries/${entry.id}`, {
+        method: 'DELETE',
+      });
 
-      if (dbError) throw dbError;
+      if (!response.ok) {
+        const error = await response.json() as { error?: string };
+        throw new Error(error.error || 'Failed to delete entry');
+      }
 
       toast({
         title: "Success",

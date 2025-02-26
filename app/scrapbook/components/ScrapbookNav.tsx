@@ -28,7 +28,7 @@ export function ScrapbookNav({ onShowBook }: ScrapbookNavProps) {
         <div className="grid grid-cols-[auto_1fr_1fr] gap-4">
           <Link href="/">
             <Button variant="outline" size="icon" className="rounded-xl h-10 w-10">
-              <Home className="h-5 w-5" />
+              <Home className="h-3 w-3" />
             </Button>
           </Link>
           <Button

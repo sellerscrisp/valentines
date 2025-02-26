@@ -9,21 +9,43 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { parentId, content } = await request.json() as { parentId: string; content: string };
+    const { parentId, content, entryId } = await request.json() as { 
+      parentId: string; 
+      content: string; 
+      entryId: string; 
+    };
     const supabaseAdmin = createAdminClient();
-    
-    const { data, error } = await supabaseAdmin
+
+    // First, check if the parent comment is a top-level comment or a reply
+    const { data: parentComment } = await supabaseAdmin
       .from('comments')
-      .insert({
-        parent_id: parentId,
-        content,
-        user_id: session.user.id
-      })
-      .select('*, user:users(name, avatar_url)')
+      .select('parent_id')
+      .eq('id', parentId)
       .single();
 
-    if (error) throw error;
-    return NextResponse.json(data);
+    // Use the original top-level comment's ID as parent_id
+    const actualParentId = parentComment?.parent_id || parentId;
+
+    const { data: newReply, error: insertError } = await supabaseAdmin
+      .from('comments')
+      .insert({
+        parent_id: actualParentId, // Use the top-level comment's ID
+        entry_id: entryId,
+        content,
+        user_id: session.user.id,
+        user_name: session.user.name || 'Anonymous',
+        user_email: session.user.email
+      })
+      .select()
+      .single();
+
+    if (insertError) throw insertError;
+
+    return NextResponse.json({
+      ...newReply,
+      reactions: [],
+      replies: []
+    });
   } catch (error) {
     console.error('Error adding reply:', error);
     return NextResponse.json({ error: "Failed to add reply" }, { status: 500 });

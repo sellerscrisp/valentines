@@ -59,7 +59,7 @@ export default function Gallery() {
           <SortDropdown sortOption={sortOption} onSortChange={setSortOption} />
         </div>
         {sortedEntries.map((entry) => (
-            <EntryCard entry={entry} />
+          <EntryCard key={entry.id} entry={entry} />
         ))}
       </div>
     </div>

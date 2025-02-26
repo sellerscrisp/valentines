@@ -47,7 +47,7 @@ export default function SortDropdown({ sortOption, onSortChange }: SortDropdownP
             <Button
               key={option.value}
               variant="ghost"
-              className={`justify-start gap-2 rounded-none ${
+              className={`justify-start gap-2 rounded ${
                 option.value === sortOption ? "bg-accent/50" : ""
               }`}
               onClick={() => onSortChange(option.value as SortOption)}
