@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -71,11 +71,23 @@ function CommentsContent({
   addReaction,
   removeReaction,
 }: CommentsContentProps) {
+  useEffect(() => {
+    if (replyingTo && commentInputRef.current) {
+      setTimeout(() => {
+        const replyElement = document.querySelector(`[data-comment-id="${replyingTo.id}"]`);
+        if (replyElement) {
+          replyElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        commentInputRef.current?.focus();
+      }, 100);
+    }
+  }, [replyingTo]);
+
   return (
     <>
       <div 
         data-drawer-content
-        className={`p-4 overflow-y-auto h-full comments-drawer-content ${className}`}
+        className={`p-4 overflow-y-auto h-[calc(100vh-180px)] ${className}`}
         onClick={handleBackdropClick}
       >
         {isLoading && (
@@ -96,7 +108,7 @@ function CommentsContent({
           />
         )}
       </div>
-      <div className="border-t p-4">
+      <div className="border-t p-4 bg-background sticky bottom-0">
         {replyingTo && (
           <div className="p-2 bg-secondary rounded-t-lg flex items-center justify-between">
             <span className="text-sm text-secondary-foreground">
@@ -114,9 +126,6 @@ function CommentsContent({
           placeholder={replyingTo ? `@${replyingTo.author}...` : "Add a comment..."}
           onCancelReply={cancelReply}
         />
-        {/* <Button variant="outline" className="w-full mt-2" onClick={onClose}>
-          Close
-        </Button> */}
       </div>
     </>
   );
@@ -235,8 +244,8 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
       <DrawerTrigger asChild>
         {trigger}
       </DrawerTrigger>
-      <DrawerContent className="bg-gray-100 fixed inset-0 top-[10%]">
-        <DrawerHeader>
+      <DrawerContent className="bg-gray-100 h-[85vh]">
+        <DrawerHeader className="sticky top-0 bg-gray-100 z-10">
           <DrawerTitle>
             {comments.length} {comments.length === 1 ? "comment" : "comments"}
           </DrawerTitle>
