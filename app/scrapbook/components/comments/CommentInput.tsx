@@ -39,7 +39,7 @@ export const CommentInput = forwardRef<HTMLTextAreaElement, CommentInputProps>(
     if (!session?.user) return null;
 
     return (
-      <div className="flex flex-col">
+      <div className="flex flex-col z-11">
         {replyingTo && (
           <div className="flex items-center justify-between mb-2 px-3">
             <span className="text-sm text-muted-foreground">
@@ -64,7 +64,7 @@ export const CommentInput = forwardRef<HTMLTextAreaElement, CommentInputProps>(
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder={placeholder}
-              className="min-h-[40px] pr-10 text-sm resize-none rounded-t-none border-secondary/60 bg-secondary/60"
+              className="min-h-[40px] pr-10 text-sm text-gray-800 placeholder:text-slate-700 resize-none rounded-t-none border-secondary/60 bg-secondary/60"
             />
             <Button
               size="icon"

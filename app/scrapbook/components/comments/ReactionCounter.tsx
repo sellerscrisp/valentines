@@ -42,7 +42,7 @@ export function ReactionCounter({ reactions, onRemoveReaction }: ReactionCounter
                 key={type}
                 className={cn(
                   "w-4 h-4 flex items-center justify-center rounded-full",
-                  index === 0 && "bg-gray-100 ring-[0.01rem] ring-white z-10",
+                  index === 0 && "bg-gray-100 ring-[0.01rem] ring-white z-1",
                   "relative"
                 )}
               >

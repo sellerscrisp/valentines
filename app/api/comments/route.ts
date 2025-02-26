@@ -40,7 +40,7 @@ export async function GET(request: Request) {
       throw error;
     }
 
-    console.log('Fetched comments data:', data);
+    // console.log('Fetched comments data:', data);
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching comments:', error);
