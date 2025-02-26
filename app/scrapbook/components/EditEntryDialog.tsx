@@ -13,10 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 // import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+// import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+// import { Calendar } from "@/components/ui/calendar";
+// import { format } from "date-fns";
+// import { CalendarIcon } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 
 interface EditEntryDialogProps {
@@ -243,7 +243,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
                 )}
               />
 
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="entry_date"
                 render={({ field }) => (
@@ -269,7 +269,7 @@ export function EditEntryDialog({ entry, open, onOpenChange }: EditEntryDialogPr
                     </FormControl>
                   </FormItem>
                 )}
-              />
+              /> */}
 
               <div className="flex justify-between pt-3">
                 <div className="flex space-x-2">
