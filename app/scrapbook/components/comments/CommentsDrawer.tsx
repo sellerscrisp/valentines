@@ -93,8 +93,9 @@ function CommentsContent({
     <>
       <div 
         data-drawer-content
-        className={`p-4 overflow-y-auto h-[calc(100%-140px)] ${className}`}
+        className={`p-4 overflow-y-auto h-full ${className}`}
         onClick={handleBackdropClick}
+        style={{ paddingBottom: "calc(140px)" }}
       >
         {isLoading && (
           <div className="animate-pulse text-center">Loading comments...</div>
@@ -114,7 +115,7 @@ function CommentsContent({
           />
         )}
       </div>
-      <div className="border-t p-4 bg-background w-full" style={{ position: 'fixed', bottom: 0, left: 0, right: 0 }}>
+      <div className="border-t p-4 bg-background w-full fixed bottom-0 left-0 right-0">
         {replyingTo && (
           <div className="p-2 bg-secondary rounded-t-lg flex items-center justify-between">
             <span className="text-sm text-secondary-foreground">
@@ -250,7 +251,7 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
       <DrawerTrigger asChild>
         {trigger}
       </DrawerTrigger>
-      <DrawerContent className="bg-gray-100 h-[80vh] flex flex-col overflow-hidden">
+      <DrawerContent className="bg-gray-100 h-[80vh] flex flex-col">
         <DrawerHeader className="bg-gray-100 border-b">
           <DrawerTitle>
             {comments.length} {comments.length === 1 ? "comment" : "comments"}
@@ -259,7 +260,7 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
             {comments.length === 0 ? "be the first to comment!" : "be nice!"}
           </DrawerDescription>
         </DrawerHeader>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 relative">
           <CommentsContent
             comments={comments}
             isLoading={isLoading}
@@ -276,7 +277,7 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
             addReply={addReply}
             addReaction={addReaction}
             removeReaction={removeReaction}
-            className="h-full"
+            className="absolute inset-0"
           />
         </div>
       </DrawerContent>
