@@ -75,7 +75,7 @@ function CommentsContent({
     <>
       <div 
         data-drawer-content
-        className={`p-4 overflow-y-auto h-full ${className}`}
+        className={`p-4 overflow-y-auto h-full comments-drawer-content ${className}`}
         onClick={handleBackdropClick}
       >
         {isLoading && (
