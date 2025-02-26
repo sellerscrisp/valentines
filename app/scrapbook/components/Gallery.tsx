@@ -8,7 +8,6 @@ import SortDropdown from "./SortDropdown";
 import { SortOption } from "@/types/sort";
 import { formatDateForForm } from "@/lib/date";
 import { Entry } from "@/types/entry";
-import SmoothReveal from "@/components/animations/smooth-reveal";
 
 // Fetcher function to get entries from API
 const fetchEntries = async () => {
@@ -60,9 +59,7 @@ export default function Gallery() {
           <SortDropdown sortOption={sortOption} onSortChange={setSortOption} />
         </div>
         {sortedEntries.map((entry) => (
-          <SmoothReveal key={entry.id}>
             <EntryCard entry={entry} />
-          </SmoothReveal>
         ))}
       </div>
     </div>

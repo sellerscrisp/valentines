@@ -23,8 +23,16 @@ export async function GET(request: Request) {
     const supabaseAdmin = createAdminClient();
     const { data, error } = await supabaseAdmin
       .from('comments')
-      .select('*, reactions(*)')
+      .select(`
+        *,
+        reactions (*),
+        replies:comments (
+          *,
+          reactions (*)
+        )
+      `)
       .eq('entry_id', entryId)
+      .is('parent_id', null)
       .order('created_at', { ascending: true });
 
     if (error) throw error;
@@ -55,7 +63,8 @@ export async function POST(request: Request) {
         entry_id: entryId,
         content,
         user_id: session.user.id,
-        user_name: session.user.name || 'Anonymous'
+        user_name: session.user.name || 'Anonymous',
+        user_email: session.user.email
       })
       .select()
       .single();
