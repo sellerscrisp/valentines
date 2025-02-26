@@ -235,7 +235,7 @@ export function CommentsDrawer({ entryId }: CommentsDrawerProps) {
       <DrawerTrigger asChild>
         {trigger}
       </DrawerTrigger>
-      <DrawerContent className="bg-gray-100">
+      <DrawerContent className="bg-gray-100 fixed inset-0 top-[10%]">
         <DrawerHeader>
           <DrawerTitle>
             {comments.length} {comments.length === 1 ? "comment" : "comments"}
